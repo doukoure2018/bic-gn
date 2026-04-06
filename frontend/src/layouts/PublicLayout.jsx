@@ -142,7 +142,6 @@ export default function PublicLayout() {
 
           <div className="flex items-center gap-2">
             <SearchBar />
-            <img src="/images/armoirie.jpeg" alt="Armoiries" className="h-10 w-auto rounded hidden lg:block" />
             <LanguageSwitch />
             <button onClick={() => setMenuOpen(!menuOpen)}
               className="rounded p-2 text-cream xl:hidden hover:bg-gold/20 cursor-pointer bg-transparent border-0"
