@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Factory, Store, Users, TrendingUp, DollarSign, FileText, ChevronRight, ChevronDown, Calendar, Globe } from 'lucide-react';
+import { Factory, Store, Users, TrendingUp, DollarSign, FileText, ChevronRight, ChevronDown, Calendar, Globe, BarChart3 } from 'lucide-react';
 import { useLanguage } from '../../hooks/useLanguage';
 import { getDashboard } from '../../api/barometre';
 import { getPublications } from '../../api/publications';
@@ -50,22 +50,28 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col bg-gray-50">
-      {/* Hero */}
+      {/* Hero with video background */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/hero-skyline.jpg')" }} />
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/90 via-navy/80 to-navy/95" />
+        <video
+          autoPlay muted loop playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          poster="/images/hero-skyline.jpg"
+        >
+          <source src="https://guif.gov.gn/public/guineainvestmentforum.com/wp-content/uploads/2023/11/videobg2.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-navy/85 via-navy/75 to-navy/90" />
         <div className="relative z-10 flex flex-col items-center px-4 py-12 text-center md:py-20">
           {/* Logo officiel BIC-GN */}
           <img
-            src="/images/logo-bicgn.jpeg"
+            src="/images/logo-bicgn.png"
             alt="Barometre Industrie & Commerce - ONCP - Guinee"
-            className="h-32 md:h-44 w-auto rounded-lg shadow-2xl mb-6"
+            className="h-40 md:h-56 w-auto mb-6"
           />
           <p className="text-base text-cream/80 md:text-lg">Suivi de la performance economique nationale</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/barometre/industrie" className="no-underline"><button className="rounded-full border-2 border-cream bg-transparent px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cream hover:text-navy transition cursor-pointer">Consulter Industrie</button></Link>
-            <Link to="/barometre/commerce" className="no-underline"><button className="flex items-center gap-1 rounded-full bg-cgreen px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cgreen/90 transition cursor-pointer border-0">Consulter Commerce <ChevronDown className="h-4 w-4" /></button></Link>
-            <button className="rounded-full bg-cred px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cred/90 transition cursor-pointer border-0">Telecharger le Rapport</button>
+            <Link to="/barometre/industrie" className="no-underline"><button className="flex items-center gap-2 rounded-full bg-cgreen px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cgreen/90 transition cursor-pointer border-0"><Factory className="h-4 w-4" /> Barometre Industrie</button></Link>
+            <Link to="/barometre/commerce" className="no-underline"><button className="flex items-center gap-2 rounded-full bg-cred px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cred/90 transition cursor-pointer border-0"><Store className="h-4 w-4" /> Barometre Commerce</button></Link>
+            <Link to="/donnees" className="no-underline"><button className="flex items-center gap-2 rounded-full border-2 border-cream bg-transparent px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cream hover:text-navy transition cursor-pointer"><BarChart3 className="h-4 w-4" /> Donnees Statistiques</button></Link>
           </div>
         </div>
       </section>
@@ -285,6 +291,39 @@ export default function HomePage() {
                   {s.nom} ({s.nb_donnees})
                 </span>
               ))}
+            </div>
+          </div>
+
+          {/* Partenaires */}
+          <div className="rounded-lg bg-white shadow-md overflow-hidden">
+            <div className="px-6 py-4 border-b">
+              <h3 className="font-semibold text-gray-800 text-center">Nos Partenaires</h3>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-4 items-center justify-items-center">
+                {[
+                  { src: '/images/partenaires/01_WorldBank_IFC.jpg', alt: 'World Bank / IFC' },
+                  { src: '/images/partenaires/02_BAD.webp', alt: 'BAD' },
+                  { src: '/images/partenaires/03_Partenaire3.png', alt: 'Partenaire' },
+                  { src: '/images/partenaires/04_Partenaire4.png', alt: 'Partenaire' },
+                  { src: '/images/partenaires/05_GPC.png', alt: 'GPC' },
+                  { src: '/images/partenaires/06_SONAP.webp', alt: 'SONAP' },
+                  { src: '/images/partenaires/07_RioTinto.jpg', alt: 'Rio Tinto / SimFer' },
+                  { src: '/images/partenaires/08_APB.png', alt: 'APB' },
+                  { src: '/images/partenaires/09_SONOCO.webp', alt: 'SONOCO' },
+                  { src: '/images/partenaires/10_CIAO.webp', alt: 'CIAO' },
+                  { src: '/images/partenaires/11_Partenaire12.png', alt: 'Partenaire' },
+                  { src: '/images/partenaires/12_Partenaire14.png', alt: 'Partenaire' },
+                  { src: '/images/partenaires/13_Partenaire13.png', alt: 'Partenaire' },
+                  { src: '/images/partenaires/14_LONAGUI.png', alt: 'LONAGUI' },
+                  { src: '/images/partenaires/15_FAPGAZ.webp', alt: 'FAPGAZ' },
+                  { src: '/images/partenaires/16_AKIBA.png', alt: 'AKIBA' },
+                  { src: '/images/partenaires/17_Ministere.png', alt: 'Ministere' },
+                  { src: '/images/partenaires/18_APIP.png', alt: 'APIP' },
+                ].map((p, i) => (
+                  <img key={i} src={p.src} alt={p.alt} className="h-12 w-auto max-w-[80px] object-contain hover:scale-105 transition duration-300" />
+                ))}
+              </div>
             </div>
           </div>
 

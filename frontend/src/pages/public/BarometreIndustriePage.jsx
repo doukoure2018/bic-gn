@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Factory, TrendingUp, TrendingDown, Minus, Download } from 'lucide-react';
+import { Factory, TrendingUp, TrendingDown, Minus, Download, FileDown } from 'lucide-react';
 import { getIndustrie } from '../../api/barometre';
 import { useLanguage } from '../../hooks/useLanguage';
 import LineChart from '../../components/charts/LineChart';
@@ -48,6 +48,11 @@ export default function BarometreIndustriePage() {
             <span className="text-sm font-bold uppercase tracking-[0.3em] text-navy">Guinée</span>
           </div>
           <p className="mt-4 text-cream/80">Indicateurs du secteur industriel guinéen</p>
+          <a href="/api/export/donnees/IND" download className="no-underline mt-6">
+            <button className="flex items-center gap-2 rounded-full bg-gold px-8 py-3 text-sm font-semibold text-navy hover:bg-gold/90 transition cursor-pointer border-0 shadow-lg">
+              <FileDown className="h-5 w-5" /> Telecharger le Rapport Industrie
+            </button>
+          </a>
         </div>
       </section>
 

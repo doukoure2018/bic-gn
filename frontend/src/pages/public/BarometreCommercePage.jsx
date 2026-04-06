@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Download } from 'lucide-react';
+import { ShoppingCart, Download, FileDown } from 'lucide-react';
 import { getCommerce } from '../../api/barometre';
 import { useLanguage } from '../../hooks/useLanguage';
 import BarChart from '../../components/charts/BarChart';
@@ -52,6 +52,11 @@ export default function BarometreCommercePage() {
             <span className="text-sm font-bold uppercase tracking-[0.3em] text-navy">Guinée</span>
           </div>
           <p className="mt-4 text-cream/80">Indicateurs du secteur commercial guinéen</p>
+          <a href="/api/export/donnees/COM" download className="no-underline mt-6">
+            <button className="flex items-center gap-2 rounded-full bg-gold px-8 py-3 text-sm font-semibold text-navy hover:bg-gold/90 transition cursor-pointer border-0 shadow-lg">
+              <FileDown className="h-5 w-5" /> Telecharger le Rapport Commerce
+            </button>
+          </a>
         </div>
       </section>
 

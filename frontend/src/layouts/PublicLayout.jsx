@@ -115,19 +115,13 @@ export default function PublicLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      {/* Top institutional bar */}
-      <div className="bg-navy/95 text-cream/70 text-[10px] py-1 px-4 hidden md:block">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <span>Republique de Guinee — Ministere de l'Industrie et du Commerce</span>
-          <span>Observer - Analyser - Eclairer l'action publique</span>
-        </div>
-      </div>
-
       {/* Navbar */}
       <header className="bg-navy text-cream sticky top-0 z-50 shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 lg:px-8">
-          <Link to="/" className="flex items-center gap-3 no-underline shrink-0">
-            <img src="/images/armoirie.jpeg" alt="Republique de Guinee" className="h-12 w-auto" />
+          <Link to="/" className="flex flex-col items-center no-underline shrink-0">
+            <img src="/images/armoirie.png" alt="Republique de Guinee" className="h-12 w-auto" />
+            <span className="text-[9px] text-cream font-bold mt-1 hidden sm:block">Republique de Guinee</span>
+            <span className="text-[8px] text-gold font-medium hidden sm:block">Ministere de l'Industrie et du Commerce</span>
           </Link>
 
           <nav className="hidden items-center gap-0.5 xl:flex">
@@ -183,26 +177,13 @@ export default function PublicLayout() {
         </div>
       </section>
 
-      {/* 7.1.1.6 — Quick Links */}
-      <section className="bg-gold px-4 py-6">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-3">
-          {quickLinks.map((link) => (
-            <Link key={link.label} to={link.path}
-              className={`flex items-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold transition-transform hover:scale-105 no-underline ${link.bg} ${link.text}`}
-            >
-              <link.icon className="h-4 w-4" />
-              {link.label}
-            </Link>
-          ))}
-        </div>
-      </section>
 
       {/* 7.1.1.9 — Footer institutionnel complet */}
       <footer>
         <div className="bg-navy px-4 py-10">
           <div className="mx-auto max-w-6xl grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <img src="/images/logo-bicgn.jpeg" alt="BIC-GN" className="h-20 w-auto rounded mb-3" />
+              <img src="/images/logo-bicgn.png" alt="BIC-GN" className="h-28 w-auto mb-3" />
               <p className="text-xs text-cream/60 leading-relaxed">
                 Plateforme de suivi de la performance economique nationale, promue par l'Observatoire National de la Competitivite Pays.
               </p>
@@ -255,16 +236,16 @@ export default function PublicLayout() {
 
         <div className="bg-white px-4 py-5">
           <div className="mx-auto max-w-5xl flex flex-wrap items-center justify-center gap-8">
-            <img src="/images/armoirie.jpeg" alt="Armoiries" className="h-12 w-auto" />
-            <div className="h-8 w-px bg-gray-200" />
+            <img src="/images/simandou2040.png" alt="Programme Simandou 2040" className="h-20 w-auto" />
+            <div className="h-12 w-px bg-gray-200" />
             <div className="text-center">
-              <p className="text-[10px] font-semibold text-navy">Ministere de l'Industrie et du Commerce</p>
-              <p className="text-[9px] text-gray-400">Republique de Guinee</p>
+              <p className="text-xs font-semibold text-navy">Ministere de l'Industrie et du Commerce</p>
+              <p className="text-[10px] text-gray-400">Republique de Guinee</p>
             </div>
-            <div className="h-8 w-px bg-gray-200" />
-            <img src="/images/logo-bicgn.jpeg" alt="BIC-GN" className="h-14 w-auto" />
-            <div className="h-8 w-px bg-gray-200" />
-            <img src="/images/guinee-brand.jpeg" alt="Guinee" className="h-8 w-auto" />
+            <div className="h-12 w-px bg-gray-200" />
+            <img src="/images/logo-bicgn.png" alt="BIC-GN" className="h-20 w-auto" />
+            <div className="h-12 w-px bg-gray-200" />
+            <img src="/images/guinee-brand.jpeg" alt="Guinee" className="h-14 w-auto" />
           </div>
           <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t text-[10px] text-gray-400">
             <span>Ministere de l'Industrie</span><span>Ministere du Commerce</span>
