@@ -8,7 +8,8 @@ on:
       - 'migrations/**'
       - 'requirements.txt'
       - 'Dockerfile'
-      - 'docker-compose.prod.yml'
+
+  workflow_dispatch:
 
 jobs:
   build-and-push:
@@ -38,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to VPS via SSH
+      - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -47,6 +48,6 @@ jobs:
           script: |
             cd ~/bicgn-api
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/bicgn-api:latest
-            docker compose up -d --no-deps bicgn-api
+            docker compose up -d --no-deps --force-recreate bicgn-api
             docker image prune -f
-            echo "BIC-GN API deployed at $(date)"
+            echo "API deployed at $(date)"

@@ -6,6 +6,8 @@ on:
     paths:
       - 'frontend/**'
 
+  workflow_dispatch:
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -34,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to VPS via SSH
+      - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -43,6 +45,6 @@ jobs:
           script: |
             cd ~/bicgn-api
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/bicgn-frontend:latest
-            docker compose up -d --no-deps bicgn-frontend
+            docker compose up -d --no-deps --force-recreate bicgn-frontend
             docker image prune -f
-            echo "BIC-GN Frontend deployed at $(date)"
+            echo "Frontend deployed at $(date)"
