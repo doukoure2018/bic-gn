@@ -127,7 +127,7 @@ export default function PublicLayout() {
       <header className="bg-navy text-cream sticky top-0 z-50 shadow-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 lg:px-8">
           <Link to="/" className="flex items-center gap-3 no-underline shrink-0">
-            <img src="/images/logo-bicgn.jpeg" alt="BIC-GN ONCP" className="h-12 w-auto rounded" />
+            <img src="/images/armoirie.jpeg" alt="Republique de Guinee" className="h-12 w-auto" />
           </Link>
 
           <nav className="hidden items-center gap-0.5 xl:flex">
