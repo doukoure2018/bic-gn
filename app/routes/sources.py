@@ -1,0 +1,139 @@
+from fastapi import APIRouter, Depends, Query
+
+from app.database import get_db
+from app.security.auth_middleware import require_role, get_current_user
+from app.services.worldbank_service import sync_all_worldbank, get_wb_indicator_data, get_all_latest_wb, WB_INDICATORS
+from app.services.sync_service import (
+    sync_opendatafrica, get_all_sources_status, get_external_data,
+    get_contraintes, get_perspectives,
+)
+from app.services.simprix_service import sync_simprix, get_prix_produits, get_prix_evolution
+
+router = APIRouter(prefix="/sources", tags=["Sources externes"])
+
+
+# --- Public endpoints ---
+
+@router.get("/status")
+async def sources_status(conn=Depends(get_db)):
+    """Get status of all external data sources."""
+    return await get_all_sources_status(conn)
+
+
+@router.get("/donnees")
+async def list_external_data(
+    source: str | None = None,
+    indicateur: str | None = None,
+    annee: int | None = None,
+    conn=Depends(get_db),
+):
+    """Get external data with optional filters."""
+    return await get_external_data(conn, source_code=source, indicator=indicateur, year=annee)
+
+
+@router.get("/worldbank")
+async def worldbank_latest(conn=Depends(get_db)):
+    """Get latest World Bank data for all indicators."""
+    return await get_all_latest_wb(conn)
+
+
+@router.get("/worldbank/{indicator_code}")
+async def worldbank_indicator(indicator_code: str, limit: int = 20, conn=Depends(get_db)):
+    """Get historical data for a specific World Bank indicator."""
+    return await get_wb_indicator_data(conn, indicator_code, limit)
+
+
+@router.get("/worldbank-indicators")
+async def worldbank_indicator_list():
+    """List all mapped World Bank indicators."""
+    return [
+        {"code": code, "nom": nom_fr, "nom_en": nom_en, "unite": unite}
+        for code, (nom_fr, nom_en, unite) in WB_INDICATORS.items()
+    ]
+
+
+@router.get("/contraintes")
+async def api_contraintes(
+    secteur_id: int | None = None,
+    periode_id: int | None = None,
+    conn=Depends(get_db),
+):
+    """Get enterprise constraints data."""
+    return await get_contraintes(conn, secteur_id=secteur_id, periode_id=periode_id)
+
+
+@router.get("/perspectives")
+async def api_perspectives(
+    secteur_id: int | None = None,
+    periode_id: int | None = None,
+    conn=Depends(get_db),
+):
+    """Get economic perspectives data."""
+    return await get_perspectives(conn, secteur_id=secteur_id, periode_id=periode_id)
+
+
+@router.get("/sous-secteurs")
+async def list_sous_secteurs(secteur_id: int | None = None, conn=Depends(get_db)):
+    """List industry sub-sectors."""
+    if secteur_id:
+        rows = await conn.fetch(
+            "SELECT * FROM sous_secteurs WHERE secteur_id = $1 AND est_actif = true ORDER BY ordre",
+            secteur_id
+        )
+    else:
+        rows = await conn.fetch("SELECT * FROM sous_secteurs WHERE est_actif = true ORDER BY secteur_id, ordre")
+    return [dict(r) for r in rows]
+
+
+# --- Prix (SIMPRIX) ---
+
+@router.get("/prix")
+async def list_prix(
+    categorie: str | None = None,
+    date_from: str | None = None,
+    conn=Depends(get_db),
+):
+    """Get product prices (SIMPRIX data)."""
+    return await get_prix_produits(conn, categorie=categorie, date_from=date_from)
+
+
+@router.get("/prix/{code_produit}/evolution")
+async def prix_evolution(code_produit: str, conn=Depends(get_db)):
+    """Get price evolution for a product."""
+    return await get_prix_evolution(conn, code_produit)
+
+
+# --- Admin sync endpoints ---
+
+@router.post("/sync/simprix")
+async def trigger_simprix_sync(conn=Depends(get_db), current_user=Depends(require_role("editeur"))):
+    """Trigger SIMPRIX price scraping."""
+    return await sync_simprix(conn)
+
+
+@router.post("/sync/worldbank")
+async def trigger_worldbank_sync(conn=Depends(get_db), current_user=Depends(require_role("editeur"))):
+    """Trigger World Bank data synchronization."""
+    result = await sync_all_worldbank(conn)
+    return result
+
+
+@router.post("/sync/opendatafrica")
+async def trigger_oda_sync(conn=Depends(get_db), current_user=Depends(require_role("editeur"))):
+    """Trigger Open Data Africa synchronization."""
+    result = await sync_opendatafrica(conn)
+    return result
+
+
+@router.post("/sync/all")
+async def trigger_full_sync(conn=Depends(get_db), current_user=Depends(require_role("editeur"))):
+    """Trigger sync from all automatic sources."""
+    wb = await sync_all_worldbank(conn)
+    oda = await sync_opendatafrica(conn)
+    spx = await sync_simprix(conn)
+    return {
+        "worldbank": wb,
+        "opendatafrica": oda,
+        "simprix": spx,
+        "message": "Synchronisation terminée",
+    }

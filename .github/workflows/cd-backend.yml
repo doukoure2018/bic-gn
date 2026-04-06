@@ -1,0 +1,52 @@
+name: CD Backend - Build & Deploy API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'migrations/**'
+      - 'requirements.txt'
+      - 'Dockerfile'
+      - 'docker-compose.prod.yml'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/bicgn-api:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/bicgn-api:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd ~/bicgn-api
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/bicgn-api:latest
+            docker compose up -d --no-deps bicgn-api
+            docker image prune -f
+            echo "BIC-GN API deployed at $(date)"

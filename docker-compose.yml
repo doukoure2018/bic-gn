@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  bicgn-postgres:
+    image: postgres:17.2-alpine
+    container_name: bicgn-postgres
+    environment:
+      POSTGRES_USER: bicgn
+      POSTGRES_PASSWORD: bicgn_password
+      POSTGRES_DB: bicgn_db
+    ports:
+      - "5435:5432"
+    volumes:
+      - bicgn-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bicgn -d bicgn_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  bicgn-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bicgn-api
+    ports:
+      - "8091:8000"
+    environment:
+      - DATABASE_URL=postgresql://bicgn:bicgn_password@bicgn-postgres:5432/bicgn_db
+      - SECRET_KEY=${SECRET_KEY:-bicgn-secret-key-production-change-me}
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost
+      - UPLOAD_DIR=/app/uploads
+      - LOG_LEVEL=INFO
+    depends_on:
+      bicgn-postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+      - bicgn-uploads:/app/uploads
+    restart: unless-stopped
+
+  bicgn-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bicgn-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - bicgn-api
+    restart: unless-stopped
+
+volumes:
+  bicgn-postgres-data:
+  bicgn-uploads:
