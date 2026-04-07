@@ -59,19 +59,21 @@ export default function HomePage() {
         >
           <source src="https://guif.gov.gn/public/guineainvestmentforum.com/wp-content/uploads/2023/11/videobg2.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/85 via-navy/75 to-navy/90" />
-        <div className="relative z-10 flex flex-col items-center px-4 py-12 text-center md:py-20">
-          {/* Logo officiel BIC-GN */}
-          <img
-            src="/images/logo-bicgn.png"
-            alt="Barometre Industrie & Commerce - ONCP - Guinee"
-            className="h-40 md:h-56 w-auto mb-6"
-          />
-          <p className="text-base text-cream/80 md:text-lg">Suivi de la performance economique nationale</p>
+        <div className="absolute inset-0 bg-navy/30" />
+        <div className="relative z-10 flex flex-col items-center px-4 py-28 text-center md:py-40">
+          <div className="overflow-hidden w-full max-w-4xl">
+            <div className="flex animate-scroll-text gap-16 whitespace-nowrap">
+              <span className="text-xl md:text-3xl italic font-light animate-shimmer">Mesurer aujourd'hui, orienter demain</span>
+              <span className="text-xl md:text-3xl italic font-light text-gold">Transparence des chiffres, confiance des acteurs</span>
+              <span className="text-xl md:text-3xl italic font-light animate-shimmer">L'industrie et le commerce sous le prisme de la performance</span>
+              <span className="text-xl md:text-3xl italic font-light text-gold">Mesurer aujourd'hui, orienter demain</span>
+              <span className="text-xl md:text-3xl italic font-light animate-shimmer">Transparence des chiffres, confiance des acteurs</span>
+              <span className="text-xl md:text-3xl italic font-light text-gold">L'industrie et le commerce sous le prisme de la performance</span>
+            </div>
+          </div>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/barometre/industrie" className="no-underline"><button className="flex items-center gap-2 rounded-full bg-cgreen px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cgreen/90 transition cursor-pointer border-0"><Factory className="h-4 w-4" /> Barometre Industrie</button></Link>
-            <Link to="/barometre/commerce" className="no-underline"><button className="flex items-center gap-2 rounded-full bg-cred px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cred/90 transition cursor-pointer border-0"><Store className="h-4 w-4" /> Barometre Commerce</button></Link>
-            <Link to="/donnees" className="no-underline"><button className="flex items-center gap-2 rounded-full border-2 border-cream bg-transparent px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cream hover:text-navy transition cursor-pointer"><BarChart3 className="h-4 w-4" /> Donnees Statistiques</button></Link>
+            <Link to="/barometre/industrie" className="no-underline"><button className="flex items-center gap-2 rounded-full bg-cgreen px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cgreen/90 transition cursor-pointer border-0"><Factory className="h-4 w-4" /> Baromètre Industrie</button></Link>
+            <Link to="/barometre/commerce" className="no-underline"><button className="flex items-center gap-2 rounded-full bg-cred px-6 py-2.5 text-sm font-semibold text-cream hover:bg-cred/90 transition cursor-pointer border-0"><Store className="h-4 w-4" /> Baromètre Commerce</button></Link>
           </div>
         </div>
       </section>

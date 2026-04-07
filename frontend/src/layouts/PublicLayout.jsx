@@ -9,9 +9,10 @@ const navLinks = [
   { key: 'apropos', path: '/a-propos', label: 'A Propos' },
   { key: 'industrie', path: '/barometre/industrie', label: 'Industrie' },
   { key: 'commerce', path: '/barometre/commerce', label: 'Commerce' },
-  { key: 'donnees', path: '/donnees', label: 'Donnees' },
+  { key: 'donnees', path: '/donnees', label: 'Données' },
+  { key: 'creer-entreprise', path: 'https://apip.gov.gn/comment-creer-mon-entreprise/', label: 'Créer mon Entreprise', external: true },
   { key: 'publications', path: '/publications', label: 'Publications' },
-  { key: 'actualites', path: '/actualites', label: 'Actualites' },
+  { key: 'actualites', path: '/actualites', label: 'Actualités' },
   { key: 'partenaires', path: '/partenaires', label: 'Partenaires' },
   { key: 'contact', path: '/contact', label: 'Contact' },
 ];
@@ -71,7 +72,7 @@ function SearchBar() {
 
   return (
     <div className="relative">
-      <div className="flex items-center bg-cream/10 rounded-lg px-2 py-1">
+      <div className="flex items-center bg-cream/15 border border-cream/30 rounded-lg px-3 py-1.5">
         <Search className="h-3.5 w-3.5 text-cream/60" />
         <input
           type="text"
@@ -80,7 +81,7 @@ function SearchBar() {
           onFocus={() => query.length >= 2 && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
           placeholder="Rechercher..."
-          className="bg-transparent text-cream text-xs placeholder:text-cream/40 outline-none w-28 lg:w-36 px-2 py-0.5"
+          className="bg-transparent text-cream text-xs placeholder:text-cream/50 outline-none w-32 lg:w-48 px-2"
         />
       </div>
       {isOpen && results.length > 0 && (
@@ -115,44 +116,74 @@ export default function PublicLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      {/* Navbar */}
-      <header className="bg-navy text-cream sticky top-0 z-50 shadow-lg">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 lg:px-8">
-          <Link to="/" className="flex flex-col items-center no-underline shrink-0">
-            <img src="/images/armoirie.png" alt="Republique de Guinee" className="h-12 w-auto" />
-            <span className="text-[9px] text-cream font-bold mt-1 hidden sm:block">Republique de Guinee</span>
-            <span className="text-[8px] text-gold font-medium hidden sm:block">Ministere de l'Industrie et du Commerce</span>
-          </Link>
+      {/* Navbar - 2 lignes */}
+      <header className="sticky top-0 z-50 shadow-lg">
 
-          <nav className="hidden items-center gap-0.5 xl:flex">
-            {navLinks.map((link) => (
-              <Link key={link.key} to={link.path}
-                className={`rounded px-2.5 py-1.5 text-xs font-medium transition-colors no-underline hover:bg-gold/20 ${
-                  location.pathname === link.path ? 'border-b-2 border-gold text-gold font-semibold' : 'text-cream/80'
-                }`}
-              >{link.label}</Link>
-            ))}
-          </nav>
+        {/* Ligne 1 (blanc) : Armoirie+texte (gauche) | Simandou (centre) | Logo ONCP (droite) */}
+        <div className="bg-white border-b">
+          <div className="mx-auto max-w-7xl px-4 lg:px-8 py-3 flex items-center justify-between gap-4">
+            <Link to="/" className="flex flex-col items-center no-underline shrink-0">
+              {location.pathname === '/' ? (
+                <>
+                  <img src="/images/armoirie.png" alt="Republique de Guinee" className="h-12 w-auto" />
+                  <p className="text-[10px] text-navy font-bold leading-tight mt-1 hidden sm:block">Republique de Guinee</p>
+                  <p className="text-[9px] text-gray-500 leading-tight hidden sm:block">Ministere de l'Industrie et du Commerce</p>
+                </>
+              ) : (
+                <img src="/images/logo-barometre.png" alt="Barometre Industrie & Commerce" style={{ height: '4.5rem' }} className="w-auto" />
+              )}
+            </Link>
+            <img src="/images/simandou2040.png" alt="Programme Simandou 2040" style={{ height: '7rem' }} className="w-auto hidden md:block" />
+            <img src="/images/logo-oncp.png" alt="ONCP" style={{ height: '5rem' }} className="w-auto hidden sm:block" />
+          </div>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <SearchBar />
-            <LanguageSwitch />
+        {/* Ligne 2 (navy) : Menu | Recherche | FR/EN */}
+        <div className="bg-navy text-cream">
+          <div className="mx-auto max-w-7xl px-4 lg:px-8 flex items-center justify-between gap-2">
+            <nav className="hidden xl:flex items-center gap-0.5 py-2">
+              {navLinks.map((link) => (
+                link.external ? (
+                  <a key={link.key} href={link.path} target="_blank" rel="noopener noreferrer"
+                    className="rounded px-3 py-2 text-xs font-medium transition-colors no-underline hover:bg-gold/20 text-gold"
+                  >{link.label}</a>
+                ) : (
+                  <Link key={link.key} to={link.path}
+                    className={`rounded px-3 py-2 text-xs font-medium transition-colors no-underline hover:bg-gold/20 ${
+                      location.pathname === link.path ? 'bg-gold/20 text-gold font-semibold' : 'text-cream/80'
+                    }`}
+                  >{link.label}</Link>
+                )
+              ))}
+            </nav>
             <button onClick={() => setMenuOpen(!menuOpen)}
-              className="rounded p-2 text-cream xl:hidden hover:bg-gold/20 cursor-pointer bg-transparent border-0"
+              className="rounded p-2 text-cream xl:hidden hover:bg-gold/20 cursor-pointer bg-transparent border-0 py-2"
             >{menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
+            <div className="hidden xl:flex items-center gap-3">
+              <SearchBar />
+              <LanguageSwitch />
+            </div>
           </div>
         </div>
 
         {menuOpen && (
-          <nav className="border-t border-cream/10 px-4 pb-4 xl:hidden">
+          <nav className="bg-navy border-t border-cream/10 px-4 pb-4 xl:hidden">
             {navLinks.map((link) => (
-              <Link key={link.key} to={link.path}
-                className={`block rounded px-3 py-2 text-sm transition-colors no-underline hover:bg-gold/20 ${
-                  location.pathname === link.path ? 'text-gold font-semibold' : 'text-cream/80'
-                }`}
-                onClick={() => setMenuOpen(false)}
-              >{link.label}</Link>
+              link.external ? (
+                <a key={link.key} href={link.path} target="_blank" rel="noopener noreferrer"
+                  className="block rounded px-3 py-2 text-sm transition-colors no-underline hover:bg-gold/20 text-gold"
+                  onClick={() => setMenuOpen(false)}
+                >{link.label}</a>
+              ) : (
+                <Link key={link.key} to={link.path}
+                  className={`block rounded px-3 py-2 text-sm transition-colors no-underline hover:bg-gold/20 ${
+                    location.pathname === link.path ? 'text-gold font-semibold' : 'text-cream/80'
+                  }`}
+                  onClick={() => setMenuOpen(false)}
+                >{link.label}</Link>
+              )
             ))}
+            <div className="mt-2 px-3"><LanguageSwitch /></div>
           </nav>
         )}
       </header>
