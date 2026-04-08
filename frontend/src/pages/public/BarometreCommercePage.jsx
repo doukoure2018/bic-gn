@@ -15,13 +15,13 @@ export default function BarometreCommercePage() {
   const [loading, setLoading] = useState(true);
   const [prix, setPrix] = useState([]);
   const [regions, setRegions] = useState([]);
-  const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState('conakry');
 
   useEffect(() => {
     Promise.all([
       getCommerce().catch(() => ({ data: {} })),
       getSimprixRegions().catch(() => ({ data: [] })),
-      getSimprixPrix().catch(() => ({ data: [] })),
+      getSimprixPrix('conakry').catch(() => ({ data: [] })),
     ]).then(([com, reg, pr]) => {
       setData(com.data);
       setRegions(reg.data);
