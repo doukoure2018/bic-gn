@@ -125,16 +125,16 @@ export default function PublicLayout() {
             <Link to="/" className="flex flex-col items-center no-underline shrink-0">
               {location.pathname === '/' ? (
                 <>
-                  <img src="/images/armoirie.png" alt="Republique de Guinee" className="h-12 w-auto" />
-                  <p className="text-[10px] text-navy font-bold leading-tight mt-1 hidden sm:block">Republique de Guinee</p>
-                  <p className="text-[9px] text-gray-500 leading-tight hidden sm:block">Ministere de l'Industrie et du Commerce</p>
+                  <img src="/images/armoirie.png" alt="Republique de Guinee" className="h-16 w-auto" />
+                  <p className="text-[11px] text-navy font-bold leading-tight mt-1 hidden sm:block">Republique de Guinee</p>
+                  <p className="text-[10px] text-gray-500 leading-tight hidden sm:block">Ministere de l'Industrie et du Commerce</p>
                 </>
               ) : (
-                <img src="/images/logo-barometre.png" alt="Barometre Industrie & Commerce" style={{ height: '4.5rem' }} className="w-auto" />
+                <img src="/images/logo-barometre.png" alt="Barometre Industrie & Commerce" style={{ height: '5.5rem' }} className="w-auto" />
               )}
             </Link>
-            <img src="/images/simandou2040.png" alt="Programme Simandou 2040" style={{ height: '7rem' }} className="w-auto hidden md:block" />
-            <img src="/images/logo-oncp.png" alt="ONCP" style={{ height: '5rem' }} className="w-auto hidden sm:block" />
+            <img src="/images/simandou2040.png" alt="Programme Simandou 2040" style={{ height: '8rem' }} className="w-auto hidden md:block" />
+            <img src="/images/logo-oncp.png" alt="ONCP" style={{ height: '6rem' }} className="w-auto hidden sm:block" />
           </div>
         </div>
 

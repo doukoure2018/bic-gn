@@ -10,6 +10,10 @@ export const getContraintes = (params) => client.get('/sources/contraintes', { p
 export const getPerspectives = (params) => client.get('/sources/perspectives', { params });
 export const getSousSecteurs = (params) => client.get('/sources/sous-secteurs', { params });
 
+export const getSimprixPrix = (region) => client.get('/sources/prix', { params: { region } });
+export const getSimprixRegions = () => client.get('/sources/prix/regions');
+
 export const syncWorldBank = () => client.post('/sources/sync/worldbank');
 export const syncOpenDataAfrica = () => client.post('/sources/sync/opendatafrica');
+export const syncSimprix = () => client.post('/sources/sync/simprix');
 export const syncAll = () => client.post('/sources/sync/all');

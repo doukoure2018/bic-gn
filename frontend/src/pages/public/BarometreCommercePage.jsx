@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Download, FileDown } from 'lucide-react';
+import { ShoppingCart, Download, FileDown, MapPin } from 'lucide-react';
 import { getCommerce } from '../../api/barometre';
+import { getSimprixPrix, getSimprixRegions } from '../../api/sources';
 import { useLanguage } from '../../hooks/useLanguage';
 import BarChart from '../../components/charts/BarChart';
 import PieChart from '../../components/charts/PieChart';
@@ -12,13 +13,27 @@ export default function BarometreCommercePage() {
   const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [prix, setPrix] = useState([]);
+  const [regions, setRegions] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState('');
 
   useEffect(() => {
-    getCommerce()
-      .then((res) => setData(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      getCommerce().catch(() => ({ data: {} })),
+      getSimprixRegions().catch(() => ({ data: [] })),
+      getSimprixPrix().catch(() => ({ data: [] })),
+    ]).then(([com, reg, pr]) => {
+      setData(com.data);
+      setRegions(reg.data);
+      setPrix(pr.data);
+      setLoading(false);
+    });
   }, []);
+
+  const handleRegionChange = (region) => {
+    setSelectedRegion(region);
+    getSimprixPrix(region || undefined).then((res) => setPrix(res.data)).catch(() => {});
+  };
 
   if (loading) return <Loading />;
 
@@ -63,7 +78,7 @@ export default function BarometreCommercePage() {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 lg:px-8">
         <div className="flex flex-col gap-8">
 
-          {/* KPI Commerce - Trading Economics + World Bank */}
+          {/* KPI Commerce */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { te: 'EXPORTS', label: 'Exportations', color: '#2E8B57', unit: 'M USD' },
@@ -79,33 +94,88 @@ export default function BarometreCommercePage() {
                     {te ? formatNumber(te.valeur, code === 'INFLATION' ? 1 : 0) : '—'}
                     <span className="text-xs font-normal text-gray-500 ml-1">{unit}</span>
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">Source: Trading Economics ({te?.annee || '—'})</p>
+                  <p className="text-xs text-gray-400 mt-1">Trading Economics {te?.annee || ''}</p>
                 </div>
               );
             })}
           </div>
 
-          {/* Sous-secteurs commerce */}
+          {/* ============================================ */}
+          {/* PRIX SIMPRIX PAR REGION — Section principale */}
+          {/* ============================================ */}
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="bg-cred/10 px-6 py-4 border-b">
-              <h3 className="font-semibold text-cred flex items-center gap-2">
-                <ShoppingCart size={20} /> Sous-secteurs commerciaux
-              </h3>
+            <div className="bg-cred/10 px-6 py-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="font-semibold text-cred flex items-center gap-2">
+                  <ShoppingCart size={20} /> Prix des denrées de première nécessité
+                </h3>
+                <p className="text-[10px] text-gray-500 mt-1">Source: SIMPRIX — simprix.gov.gn (DNCIC)</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <MapPin size={16} className="text-cred" />
+                <select
+                  value={selectedRegion}
+                  onChange={(e) => handleRegionChange(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-cred focus:border-transparent outline-none"
+                >
+                  <option value="">Toutes les régions</option>
+                  {regions.map((r) => (
+                    <option key={r.region_code} value={r.region_code}>{r.region_nom}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-              {sousSecteurs.map((ss) => (
-                <div key={ss.code} className="border rounded-lg p-4 hover:border-cred/50 transition">
-                  <p className="font-medium">{ss.nom}</p>
-                  <p className="text-xs text-gray-500 mt-1">{ss.nom_en}</p>
-                </div>
-              ))}
-            </div>
+
+            {prix.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 p-6">
+                {prix.map((p, i) => {
+                  const emoji = p.code?.includes('RIZ') ? '🍚' :
+                    p.code?.includes('HUILE') ? '🛢️' :
+                    p.code?.includes('OIGNON') ? '🧅' :
+                    p.code?.includes('POULET') || p.code?.includes('CUISSE') ? '🍗' :
+                    p.code?.includes('SUCRE') ? '🍬' :
+                    p.code?.includes('FARINE') ? '🌾' :
+                    p.code?.includes('LAIT') ? '🥛' : '🛒';
+                  return (
+                    <div key={i} className="border rounded-xl p-4 hover:shadow-lg transition group bg-white">
+                      <div className="h-28 w-full flex items-center justify-center mb-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden">
+                        {p.image_url ? (
+                          <img
+                            src={p.image_url}
+                            alt={p.nom}
+                            className="max-h-24 max-w-full object-contain group-hover:scale-110 transition duration-300"
+                            onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                          />
+                        ) : null}
+                        <span className={`text-5xl ${p.image_url ? 'hidden' : ''}`}>{emoji}</span>
+                      </div>
+                      <h4 className="text-xs font-semibold text-gray-800 leading-tight mb-2">{p.nom}</h4>
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-lg font-bold text-cred">{formatNumber(p.prix_plafond)}</span>
+                        <span className="text-[10px] text-gray-400">{p.unite}</span>
+                      </div>
+                      {p.region_nom && (
+                        <div className="flex items-center gap-1 mt-2 bg-gray-50 rounded px-2 py-1">
+                          <MapPin size={10} className="text-cred" />
+                          <span className="text-[10px] text-gray-600 font-medium">{p.region_nom}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-12 text-center text-gray-400">
+                <ShoppingCart size={48} className="mx-auto mb-4 opacity-30" />
+                <p>Synchronisez les prix SIMPRIX depuis l'administration</p>
+              </div>
+            )}
           </div>
 
-          {/* World Bank indicators */}
+          {/* World Bank + Trading Economics */}
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="px-6 py-4 border-b">
-              <h3 className="font-semibold text-gray-800">Indicateurs macroéconomiques (Banque Mondiale)</h3>
+              <h3 className="font-semibold text-gray-800">Indicateurs macroéconomiques</h3>
             </div>
             <div className="divide-y">
               {wbData.map((wb, i) => (
@@ -150,7 +220,6 @@ export default function BarometreCommercePage() {
                 height={280}
               />
             </div>
-
             <div className="bg-white rounded-lg shadow-md p-5">
               <h3 className="text-sm font-semibold text-gray-800 mb-4">Perspectives commerciales</h3>
               <PieChart
@@ -164,40 +233,9 @@ export default function BarometreCommercePage() {
             </div>
           </div>
 
-          {/* Indicateurs détaillés */}
-          {data?.indicateurs?.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b flex items-center justify-between">
-                <h3 className="font-semibold text-gray-800">Indicateurs détaillés</h3>
-                <a href="/api/export/donnees/COM" download className="no-underline">
-                  <button className="flex items-center gap-1 bg-cred text-cream px-3 py-1.5 rounded text-xs font-medium cursor-pointer border-0 hover:bg-cred/90">
-                    <Download size={14} /> Export Excel
-                  </button>
-                </a>
-              </div>
-              <div className="divide-y">
-                {data.indicateurs.map((ind, i) => (
-                  <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-red-50/30">
-                    <div>
-                      <p className="font-medium text-sm">{ind.nom}</p>
-                      <p className="text-xs text-gray-500">{ind.categorie}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-bold text-cred">
-                        {formatNumber(ind.valeur, 1)}
-                        <span className="text-xs font-normal text-gray-500 ml-1">{ind.unite}</span>
-                      </span>
-                      {ind.tendance && <Badge status={ind.tendance}>{ind.tendance}</Badge>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="rounded-lg bg-navy/5 border border-navy/10 p-4">
             <p className="text-xs text-gray-500 text-center">
-              Sources : Banque Mondiale • Trading Economics • SIMPRIX • BCRG • Douanes Guinée • Enquêtes ONCP
+              Sources : SIMPRIX (simprix.gov.gn) — Banque Mondiale — Trading Economics — BCRG — Enquêtes ONCP
             </p>
           </div>
         </div>

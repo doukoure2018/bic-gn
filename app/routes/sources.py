@@ -7,7 +7,7 @@ from app.services.sync_service import (
     sync_opendatafrica, get_all_sources_status, get_external_data,
     get_contraintes, get_perspectives,
 )
-from app.services.simprix_service import sync_simprix, get_prix_produits, get_prix_evolution
+from app.services.simprix_service import sync_simprix, get_simprix_prix, get_simprix_regions, get_prix_evolution
 
 router = APIRouter(prefix="/sources", tags=["Sources externes"])
 
@@ -89,12 +89,17 @@ async def list_sous_secteurs(secteur_id: int | None = None, conn=Depends(get_db)
 
 @router.get("/prix")
 async def list_prix(
-    categorie: str | None = None,
-    date_from: str | None = None,
+    region: str | None = None,
     conn=Depends(get_db),
 ):
-    """Get product prices (SIMPRIX data)."""
-    return await get_prix_produits(conn, categorie=categorie, date_from=date_from)
+    """Get SIMPRIX prices, filterable by region code."""
+    return await get_simprix_prix(conn, region_code=region)
+
+
+@router.get("/prix/regions")
+async def prix_regions(conn=Depends(get_db)):
+    """Get list of regions with price data."""
+    return await get_simprix_regions(conn)
 
 
 @router.get("/prix/{code_produit}/evolution")
