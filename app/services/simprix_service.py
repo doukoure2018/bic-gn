@@ -52,82 +52,65 @@ SIMPRIX_REGION_URLS = {
 SIMPRIX_REGIONS = {k: v["nom"] for k, v in SIMPRIX_REGION_URLS.items()}
 
 
-async def _scrape_region_prices(client: httpx.AsyncClient, url: str) -> list[dict]:
-    """Scrape prices from a SIMPRIX regional page."""
+async def _scrape_region_playwright(url: str) -> list[dict]:
+    """Scrape prices from a SIMPRIX regional page using Playwright (headless browser)."""
     try:
-        resp = await client.get(url)
-        if resp.status_code != 200:
-            return []
+        from playwright.async_api import async_playwright
 
-        html = resp.text
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            await page.goto(url, wait_until="networkidle", timeout=30000)
+
+            # Wait for price content to load
+            await page.wait_for_timeout(3000)
+
+            # Get all text content from the page
+            html = await page.content()
+            await browser.close()
+
         soup = BeautifulSoup(html, "html.parser")
         prices = []
+        seen = set()
 
-        # Method 1: Find price values in text (pattern: "280.000 GNF" or "280,000")
-        all_text = soup.get_text()
-        # Look for product names followed by prices
-        product_names = [
-            "RIZ IMPORTE 5% BRISURES 50",
-            "RIZ IMPORTE 25% BRISURES 50",
-            "RIZ IMPORTE 5% BRISURES 25",
-            "HUILE VEGETALE",
-            "OIGNON",
-            "POULET ENTIER",
-            "CUISSE DE POULET",
-            "SUCRE",
-            "FARINE",
-            "LAIT EN POUDRE",
-        ]
+        # Extract all text blocks and find price patterns
+        all_text = soup.get_text(separator="\n")
 
-        # Method 2: Find all elements with price-like content
-        for el in soup.find_all(True):
-            text = el.get_text(strip=True)
-            if not text:
-                continue
-            # Match patterns like "280.000 GNF" or "280,000 GNF"
-            price_match = re.search(r'(\d{2,3}[.,]\d{3})\s*GNF', text)
+        # Find product-price pairs: product name followed by price
+        lines = [l.strip() for l in all_text.split("\n") if l.strip()]
+        for i, line in enumerate(lines):
+            price_match = re.search(r'(\d{2,3})[.,](\d{3})\s*GNF', line)
             if price_match:
-                price_val = price_match.group(1).replace('.', '').replace(',', '')
-                # Find which product this price belongs to
-                parent_text = ""
-                parent = el.parent
-                for _ in range(5):
-                    if parent:
-                        parent_text = parent.get_text(strip=True).upper()
-                        parent = parent.parent
-                    else:
-                        break
+                val = int(price_match.group(1)) * 1000 + int(price_match.group(2))
+                if 100000 <= val <= 2000000:
+                    # Look backwards for the product name
+                    product_name = ""
+                    for j in range(max(0, i - 5), i):
+                        candidate = lines[j].upper()
+                        if any(kw in candidate for kw in ["RIZ", "HUILE", "OIGNON", "POULET", "CUISSE", "SUCRE", "FARINE", "LAIT"]):
+                            product_name = lines[j]
+                            break
 
-                for pname in product_names:
-                    if pname in parent_text or pname in text.upper():
-                        prices.append({"nom": pname, "prix": float(price_val)})
-                        break
+                    if not product_name:
+                        # Try the same line
+                        name_part = re.sub(r'[\d.,]+\s*GNF.*', '', line).strip()
+                        if name_part:
+                            product_name = name_part
 
-        # Method 3: Try extracting from any structured data
-        if not prices:
-            # Look for divs/spans with number patterns
-            for el in soup.find_all(['span', 'div', 'p', 'td', 'h3', 'h4', 'h5']):
-                text = el.get_text(strip=True)
-                price_match = re.search(r'(\d{2,3})[.,](\d{3})', text)
-                if price_match and 'GNF' in (el.parent.get_text() if el.parent else ''):
-                    val = int(price_match.group(1)) * 1000 + int(price_match.group(2))
-                    if 100000 <= val <= 2000000:  # Reasonable price range
-                        prices.append({"nom": text, "prix": float(val)})
+                    if product_name:
+                        code = _match_product_code(product_name)
+                        if code and code not in seen:
+                            prices.append({"nom": product_name, "prix": float(val), "code": code})
+                            seen.add(code)
 
-        # Method 4: Extract from JSON embedded in scripts
-        for script in soup.find_all("script"):
-            script_text = script.string or ""
-            # Look for price data in JavaScript
-            price_matches = re.findall(r'"prix"\s*:\s*"?(\d+)"?', script_text)
-            name_matches = re.findall(r'"description"\s*:\s*"([^"]+)"', script_text)
-            for i, price in enumerate(price_matches):
-                if i < len(name_matches):
-                    prices.append({"nom": name_matches[i], "prix": float(price)})
-
+        logger.info(f"Playwright scraped {len(prices)} prices from {url}")
         return prices
 
+    except ImportError:
+        logger.warning("Playwright not installed, skipping browser scraping")
+        return []
     except Exception as e:
-        logger.error(f"SIMPRIX scrape error for {url}: {e}")
+        logger.error(f"Playwright scrape error for {url}: {e}")
         return []
 
 
@@ -185,34 +168,30 @@ async def sync_simprix_all_regions(conn) -> dict:
     for code, url in simprix_images.items():
         await conn.execute("UPDATE simprix_produits SET image_url = $1 WHERE code = $2 AND image_url IS NULL", url, code)
 
-    # Scrape prices from all SIMPRIX regional pages
-    try:
-        async with httpx.AsyncClient(timeout=20, follow_redirects=True, verify=False) as client:
-            for region_code, region_info in SIMPRIX_REGION_URLS.items():
-                try:
-                    full_url = f"{SIMPRIX_BASE}{region_info['url']}"
-                    scraped = await _scrape_region_prices(client, full_url)
-                    if scraped:
-                        today = date.today()
-                        for item in scraped:
-                            code = _match_product_code(item["nom"])
-                            if code and item.get("prix"):
-                                produit = await conn.fetchrow("SELECT id FROM simprix_produits WHERE code = $1", code)
-                                if produit:
-                                    await conn.execute("""
-                                        INSERT INTO simprix_prix (produit_id, region_code, region_nom, prix_plafond, date_releve)
-                                        VALUES ($1, $2, $3, $4, $5)
-                                        ON CONFLICT (produit_id, region_code, date_releve)
-                                        DO UPDATE SET prix_plafond = $4
-                                    """, produit["id"], region_code, region_info["nom"], item["prix"], today)
-                                    total += 1
-                        regions_done.append(region_code)
-                        logger.info(f"SIMPRIX: {region_info['nom']} -> {len(scraped)} prix")
-                except Exception as e:
-                    errors.append({"region": region_code, "error": str(e)})
-                    logger.warning(f"SIMPRIX scrape error {region_code}: {e}")
-    except Exception as e:
-        logger.warning(f"SIMPRIX scraping failed: {e}")
+    # Scrape prices from all SIMPRIX regional pages using Playwright
+    today = date.today()
+    for region_code, region_info in SIMPRIX_REGION_URLS.items():
+        try:
+            full_url = f"{SIMPRIX_BASE}{region_info['url']}"
+            scraped = await _scrape_region_playwright(full_url)
+            if scraped:
+                for item in scraped:
+                    code = item.get("code") or _match_product_code(item["nom"])
+                    if code and item.get("prix"):
+                        produit = await conn.fetchrow("SELECT id FROM simprix_produits WHERE code = $1", code)
+                        if produit:
+                            await conn.execute("""
+                                INSERT INTO simprix_prix (produit_id, region_code, region_nom, prix_plafond, date_releve)
+                                VALUES ($1, $2, $3, $4, $5)
+                                ON CONFLICT (produit_id, region_code, date_releve)
+                                DO UPDATE SET prix_plafond = $4
+                            """, produit["id"], region_code, region_info["nom"], item["prix"], today)
+                            total += 1
+                regions_done.append(region_code)
+                logger.info(f"SIMPRIX: {region_info['nom']} -> {len(scraped)} prix")
+        except Exception as e:
+            errors.append({"region": region_code, "error": str(e)})
+            logger.warning(f"SIMPRIX scrape error {region_code}: {e}")
 
     # Fallback: insert Conakry known prices if scraping got nothing
     known_prices = {
