@@ -222,33 +222,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Prix SIMPRIX */}
-          {data?.prix?.length > 0 && (
-            <div className="rounded-lg bg-white shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b">
-                <h3 className="font-semibold text-gray-800">Prix des denrées de première nécessité</h3>
-                <p className="text-[10px] text-gray-400">Source: SIMPRIX — simprix.gov.gn (DNCIC)</p>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead><tr className="bg-gray-50 border-b">
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Produit</th>
-                    <th className="px-4 py-3 text-right font-semibold text-gray-600">Prix plafond</th>
-                    <th className="px-4 py-3 text-right font-semibold text-gray-600">Prix marché</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-600">Unité</th>
-                  </tr></thead>
-                  <tbody>{data.prix.map((p, i) => (
-                    <tr key={i} className="border-b hover:bg-gold/5">
-                      <td className="px-4 py-3 font-medium">{p.nom_produit}</td>
-                      <td className="px-4 py-3 text-right text-cgreen font-semibold">{formatNumber(p.prix_plafond)}</td>
-                      <td className="px-4 py-3 text-right text-cred font-semibold">{formatNumber(p.prix_marche)}</td>
-                      <td className="px-4 py-3 text-gray-500">{p.unite}</td>
-                    </tr>
-                  ))}</tbody>
-                </table>
+          {/* Lien vers Prix moyens Commerce */}
+          <Link to="/barometre/commerce" className="no-underline block">
+            <div className="rounded-lg bg-gradient-to-r from-cred to-cred/80 shadow-md p-6 hover:shadow-lg transition">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-cream text-lg">Prix moyens des denrées de première nécessité</h3>
+                  <p className="text-cream/70 text-sm mt-1">Consultez les prix par région — Source: SIMPRIX (simprix.gov.gn)</p>
+                </div>
+                <ChevronRight className="h-8 w-8 text-cream/60" />
               </div>
             </div>
-          )}
+          </Link>
 
           {/* Publications & Actualités */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

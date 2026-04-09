@@ -100,6 +100,28 @@ export default function BarometreCommercePage() {
             })}
           </div>
 
+          {/* Indicateurs supplémentaires : Ciment, Essence, Gaz */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: 'Ciment (sac 50kg)', plafond: 85000, marche: 90000, unite: 'GNF/sac', color: '#0A1F44' },
+              { label: 'Essence / Gasoil', plafond: 12000, marche: 12000, unite: 'GNF/litre', color: '#2E8B57' },
+              { label: 'Gaz butane (bouteille 12kg)', plafond: 120000, marche: 130000, unite: 'GNF/bout.', color: '#C41E3A' },
+            ].map((item) => (
+              <div key={item.label} className="bg-white rounded-lg shadow-md p-4">
+                <p className="text-xs text-gray-500 uppercase tracking-wide">{item.label}</p>
+                <p className="text-2xl font-bold mt-1" style={{ color: item.color }}>
+                  {formatNumber(item.plafond)}
+                  <span className="text-xs font-normal text-gray-500 ml-1">{item.unite}</span>
+                </p>
+                <div className="flex items-center justify-between mt-2 text-xs">
+                  <span className="text-gray-400">Prix plafond</span>
+                  <span className="text-gray-500 font-medium">Marché: {formatNumber(item.marche)} {item.unite}</span>
+                </div>
+                <p className="text-[10px] text-gray-400 mt-1">Source: SIMPRIX</p>
+              </div>
+            ))}
+          </div>
+
           {/* ============================================ */}
           {/* PRIX SIMPRIX PAR REGION — Section principale */}
           {/* ============================================ */}
@@ -107,7 +129,7 @@ export default function BarometreCommercePage() {
             <div className="bg-cred/10 px-6 py-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-semibold text-cred flex items-center gap-2">
-                  <ShoppingCart size={20} /> Prix des denrées de première nécessité
+                  <ShoppingCart size={20} /> Prix moyens des denrées de première nécessité
                 </h3>
                 <p className="text-[10px] text-gray-500 mt-1">Source: SIMPRIX — simprix.gov.gn (DNCIC) — Prix moyen par région (moyenne des préfectures)</p>
               </div>

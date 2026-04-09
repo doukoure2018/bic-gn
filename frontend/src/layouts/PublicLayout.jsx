@@ -133,7 +133,7 @@ export default function PublicLayout() {
                 <img src="/images/logo-barometre.png" alt="Barometre Industrie & Commerce" style={{ height: '5.5rem' }} className="w-auto" />
               )}
             </Link>
-            <img src="/images/simandou2040.png" alt="Programme Simandou 2040" style={{ height: '8rem' }} className="w-auto hidden md:block" />
+            <img src="/images/simandou2040.png" alt="Programme Simandou 2040" style={{ height: '9.5rem' }} className="w-auto hidden md:block" />
             <img src="/images/logo-oncp.png" alt="ONCP" style={{ height: '6rem' }} className="w-auto hidden sm:block" />
           </div>
         </div>
