@@ -57,7 +57,7 @@ export default function HomePage() {
           className="absolute inset-0 w-full h-full object-cover"
           poster="/images/hero-skyline.jpg"
         >
-          <source src="https://guif.gov.gn/public/guineainvestmentforum.com/wp-content/uploads/2023/11/videobg2.mp4" type="video/mp4" />
+          <source src="/images/videobg2.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-navy/30" />
         <div className="relative z-10 flex flex-col items-center px-4 py-28 text-center md:py-40">
