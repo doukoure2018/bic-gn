@@ -97,8 +97,17 @@ async def scrape_all():
                 await page.wait_for_timeout(2000)
                 html = await page.content()
 
-                price_matches = re.findall(r'(\d{2,3})[.,](\d{3})\s*GNF', html)
-                vals = [int(x[0]) * 1000 + int(x[1]) for x in price_matches if int(x[0]) * 1000 + int(x[1]) > 10000]
+                # Extract ALL prices in order of appearance
+                # Handles both 280.000 GNF and 1.005.500 GNF formats
+                vals = []
+                for m in re.finditer(r'([\d.,]+)\s*GNF', html):
+                    raw = m.group(1).replace('.', '').replace(',', '')
+                    try:
+                        val = int(raw)
+                        if val > 10000:
+                            vals.append(val)
+                    except ValueError:
+                        pass
 
                 if vals:
                     prices = {}
