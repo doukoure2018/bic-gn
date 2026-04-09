@@ -116,12 +116,56 @@ export default function BarometreCommercePage() {
                 <select
                   value={selectedRegion}
                   onChange={(e) => handleRegionChange(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-cred focus:border-transparent outline-none"
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-cred focus:border-transparent outline-none min-w-[200px]"
                 >
-                  <option value="">Toutes les régions</option>
-                  {regions.map((r) => (
-                    <option key={r.region_code} value={r.region_code}>{r.region_nom}</option>
-                  ))}
+                  <option value="conakry">CONAKRY</option>
+                  <optgroup label="BOKÉ">
+                    <option value="boke">Boké</option>
+                    <option value="boffa">Boffa</option>
+                    <option value="fria">Fria</option>
+                    <option value="gaoual">Gaoual</option>
+                    <option value="koundara">Koundara</option>
+                  </optgroup>
+                  <optgroup label="KINDIA">
+                    <option value="kindia">Kindia</option>
+                    <option value="coyah">Coyah</option>
+                    <option value="dubreka">Dubréka</option>
+                    <option value="forecariah">Forécariah</option>
+                    <option value="telimele">Télimélé</option>
+                  </optgroup>
+                  <optgroup label="LABÉ">
+                    <option value="labe">Labé</option>
+                    <option value="koubia">Koubia</option>
+                    <option value="lelouma">Lélouma</option>
+                    <option value="mali">Mali</option>
+                    <option value="tougue">Tougué</option>
+                  </optgroup>
+                  <optgroup label="FARANAH">
+                    <option value="faranah">Faranah</option>
+                    <option value="dabola">Dabola</option>
+                    <option value="dinguiraye">Dinguiraye</option>
+                    <option value="kissidougou">Kissidougou</option>
+                  </optgroup>
+                  <optgroup label="NZÉRÉKORÉ">
+                    <option value="nzerekore">Nzérékoré</option>
+                    <option value="beyla">Beyla</option>
+                    <option value="gueckedou">Guéckédou</option>
+                    <option value="lola">Lola</option>
+                    <option value="macenta">Macenta</option>
+                    <option value="yomou">Yomou</option>
+                  </optgroup>
+                  <optgroup label="MAMOU">
+                    <option value="mamou">Mamou</option>
+                    <option value="dalaba">Dalaba</option>
+                    <option value="pita">Pita</option>
+                  </optgroup>
+                  <optgroup label="KANKAN">
+                    <option value="kankan">Kankan</option>
+                    <option value="siguiri">Siguiri</option>
+                    <option value="mandiana">Mandiana</option>
+                    <option value="kouroussa">Kouroussa</option>
+                    <option value="kerouane">Kérouané</option>
+                  </optgroup>
                 </select>
               </div>
             </div>
