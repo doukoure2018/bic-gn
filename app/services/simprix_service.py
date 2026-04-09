@@ -52,66 +52,69 @@ SIMPRIX_REGION_URLS = {
 SIMPRIX_REGIONS = {k: v["nom"] for k, v in SIMPRIX_REGION_URLS.items()}
 
 
-async def _scrape_region_playwright(url: str) -> list[dict]:
-    """Scrape prices from a SIMPRIX regional page using Playwright (headless browser)."""
+PRODUCTS_ORDER = [
+    "RIZ_5_50", "RIZ_25_50", "HUILE_20", "OIGNON_25",
+    "POULET_10", "CUISSE_10", "SUCRE_50", "FARINE_50",
+    "LAIT_25", "RIZ_5_25",
+]
+
+
+def _extract_prices_from_html(html: str) -> list[dict]:
+    """Extract prices from SIMPRIX page HTML, matched to products by order."""
+    price_matches = re.findall(r'(\d{2,3})[.,](\d{3})\s*GNF', html)
+    vals = []
+    for p in price_matches:
+        val = int(p[0]) * 1000 + int(p[1])
+        if val > 10000:
+            vals.append(val)
+
+    results = []
+    for i, code in enumerate(PRODUCTS_ORDER):
+        if i < len(vals):
+            results.append({"code": code, "prix": float(vals[i])})
+
+    return results
+
+
+async def _scrape_all_regions_playwright() -> dict[str, list[dict]]:
+    """Scrape ALL SIMPRIX regions in a single browser session."""
+    all_data = {}
     try:
         from playwright.async_api import async_playwright
 
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            page = await browser.new_page()
-            await page.goto(url, wait_until="networkidle", timeout=30000)
+            browser = await p.chromium.launch(headless=False, args=["--window-position=-2000,-2000"])
+            ctx = await browser.new_context()
+            page = await ctx.new_page()
 
-            # Wait for price content to load
+            # Visit main page first to pass captcha/get cookies
+            await page.goto(f"{SIMPRIX_BASE}/9e7d6b59065b43a81686e55819520ba0",
+                            wait_until="networkidle", timeout=30000)
             await page.wait_for_timeout(3000)
 
-            # Get all text content from the page
-            html = await page.content()
+            for region_code, region_info in SIMPRIX_REGION_URLS.items():
+                try:
+                    url = f"{SIMPRIX_BASE}{region_info['url']}"
+                    await page.goto(url, wait_until="networkidle", timeout=20000)
+                    await page.wait_for_timeout(2000)
+                    html = await page.content()
+
+                    prices = _extract_prices_from_html(html)
+                    if prices:
+                        all_data[region_code] = prices
+                        logger.info(f"SIMPRIX scraped {region_info['nom']}: {len(prices)} prix")
+
+                except Exception as e:
+                    logger.warning(f"SIMPRIX scrape skip {region_code}: {e}")
+
             await browser.close()
 
-        soup = BeautifulSoup(html, "html.parser")
-        prices = []
-        seen = set()
-
-        # Extract all text blocks and find price patterns
-        all_text = soup.get_text(separator="\n")
-
-        # Find product-price pairs: product name followed by price
-        lines = [l.strip() for l in all_text.split("\n") if l.strip()]
-        for i, line in enumerate(lines):
-            price_match = re.search(r'(\d{2,3})[.,](\d{3})\s*GNF', line)
-            if price_match:
-                val = int(price_match.group(1)) * 1000 + int(price_match.group(2))
-                if 100000 <= val <= 2000000:
-                    # Look backwards for the product name
-                    product_name = ""
-                    for j in range(max(0, i - 5), i):
-                        candidate = lines[j].upper()
-                        if any(kw in candidate for kw in ["RIZ", "HUILE", "OIGNON", "POULET", "CUISSE", "SUCRE", "FARINE", "LAIT"]):
-                            product_name = lines[j]
-                            break
-
-                    if not product_name:
-                        # Try the same line
-                        name_part = re.sub(r'[\d.,]+\s*GNF.*', '', line).strip()
-                        if name_part:
-                            product_name = name_part
-
-                    if product_name:
-                        code = _match_product_code(product_name)
-                        if code and code not in seen:
-                            prices.append({"nom": product_name, "prix": float(val), "code": code})
-                            seen.add(code)
-
-        logger.info(f"Playwright scraped {len(prices)} prices from {url}")
-        return prices
-
     except ImportError:
-        logger.warning("Playwright not installed, skipping browser scraping")
-        return []
+        logger.warning("Playwright not installed")
     except Exception as e:
-        logger.error(f"Playwright scrape error for {url}: {e}")
-        return []
+        logger.error(f"Playwright session error: {e}")
+
+    return all_data
 
 
 def _parse_price(text: str) -> float | None:
@@ -168,30 +171,24 @@ async def sync_simprix_all_regions(conn) -> dict:
     for code, url in simprix_images.items():
         await conn.execute("UPDATE simprix_produits SET image_url = $1 WHERE code = $2 AND image_url IS NULL", url, code)
 
-    # Scrape prices from all SIMPRIX regional pages using Playwright
+    # Scrape ALL regions in a single Playwright session
     today = date.today()
-    for region_code, region_info in SIMPRIX_REGION_URLS.items():
-        try:
-            full_url = f"{SIMPRIX_BASE}{region_info['url']}"
-            scraped = await _scrape_region_playwright(full_url)
-            if scraped:
-                for item in scraped:
-                    code = item.get("code") or _match_product_code(item["nom"])
-                    if code and item.get("prix"):
-                        produit = await conn.fetchrow("SELECT id FROM simprix_produits WHERE code = $1", code)
-                        if produit:
-                            await conn.execute("""
-                                INSERT INTO simprix_prix (produit_id, region_code, region_nom, prix_plafond, date_releve)
-                                VALUES ($1, $2, $3, $4, $5)
-                                ON CONFLICT (produit_id, region_code, date_releve)
-                                DO UPDATE SET prix_plafond = $4
-                            """, produit["id"], region_code, region_info["nom"], item["prix"], today)
-                            total += 1
-                regions_done.append(region_code)
-                logger.info(f"SIMPRIX: {region_info['nom']} -> {len(scraped)} prix")
-        except Exception as e:
-            errors.append({"region": region_code, "error": str(e)})
-            logger.warning(f"SIMPRIX scrape error {region_code}: {e}")
+    all_scraped = await _scrape_all_regions_playwright()
+
+    for region_code, prices in all_scraped.items():
+        region_nom = SIMPRIX_REGION_URLS.get(region_code, {}).get("nom", region_code)
+        for item in prices:
+            code = item["code"]
+            produit = await conn.fetchrow("SELECT id FROM simprix_produits WHERE code = $1", code)
+            if produit:
+                await conn.execute("""
+                    INSERT INTO simprix_prix (produit_id, region_code, region_nom, prix_plafond, date_releve)
+                    VALUES ($1, $2, $3, $4, $5)
+                    ON CONFLICT (produit_id, region_code, date_releve)
+                    DO UPDATE SET prix_plafond = $4
+                """, produit["id"], region_code, region_nom, item["prix"], today)
+                total += 1
+        regions_done.append(region_code)
 
     # Fallback: insert Conakry known prices if scraping got nothing
     known_prices = {

@@ -108,6 +108,34 @@ async def prix_evolution(code_produit: str, conn=Depends(get_db)):
     return await get_prix_evolution(conn, code_produit)
 
 
+@router.post("/simprix-import")
+async def import_simprix_prices(
+    data: dict,
+    conn=Depends(get_db),
+    current_user=Depends(require_role("editeur")),
+):
+    """Import SIMPRIX prices from external scraper script."""
+    from datetime import date
+    region_code = data.get("region_code")
+    region_nom = data.get("region_nom")
+    prices = data.get("prices", {})
+
+    count = 0
+    today = date.today()
+    for product_code, prix in prices.items():
+        produit = await conn.fetchrow("SELECT id FROM simprix_produits WHERE code = $1", product_code)
+        if produit:
+            await conn.execute("""
+                INSERT INTO simprix_prix (produit_id, region_code, region_nom, prix_plafond, date_releve)
+                VALUES ($1, $2, $3, $4, $5)
+                ON CONFLICT (produit_id, region_code, date_releve)
+                DO UPDATE SET prix_plafond = $4
+            """, produit["id"], region_code, region_nom, float(prix), today)
+            count += 1
+
+    return {"region": region_nom, "imported": count}
+
+
 # --- Admin sync endpoints ---
 
 @router.post("/sync/simprix")
