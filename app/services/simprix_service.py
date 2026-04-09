@@ -232,33 +232,82 @@ async def sync_simprix_all_regions(conn) -> dict:
     }
 
 
+# Mapping préfectures -> région principale
+REGION_PREFECTURES = {
+    "conakry": {"nom": "Conakry", "prefectures": ["conakry"]},
+    "boke": {"nom": "Boké", "prefectures": ["boke", "boffa", "fria", "gaoual", "koundara"]},
+    "kindia": {"nom": "Kindia", "prefectures": ["kindia", "coyah", "dubreka", "forecariah", "telimele"]},
+    "labe": {"nom": "Labé", "prefectures": ["labe", "koubia", "lelouma", "mali", "tougue"]},
+    "faranah": {"nom": "Faranah", "prefectures": ["faranah", "dabola", "dinguiraye", "kissidougou"]},
+    "nzerekore": {"nom": "Nzérékoré", "prefectures": ["nzerekore", "beyla", "gueckedou", "lola", "macenta", "yomou"]},
+    "mamou": {"nom": "Mamou", "prefectures": ["mamou", "dalaba", "pita"]},
+    "kankan": {"nom": "Kankan", "prefectures": ["kankan", "siguiri", "mandiana", "kouroussa", "kerouane"]},
+}
+
+
 async def get_simprix_prix(conn, region_code: str = None) -> list[dict]:
-    """Get SIMPRIX prices with product details, filterable by region."""
-    query = """
+    """Get SIMPRIX average prices by main region (8 regions)."""
+    if not region_code:
+        region_code = "conakry"
+
+    region_info = REGION_PREFECTURES.get(region_code)
+    if not region_info:
+        return []
+
+    prefectures = region_info["prefectures"]
+    region_nom = region_info["nom"]
+
+    # Calculate average price across all prefectures for each product
+    rows = await conn.fetch("""
         SELECT sp.code, sp.nom, sp.unite, sp.image_url, sp.ordre,
-               sx.region_code, sx.region_nom, sx.prix_plafond, sx.date_releve
+               ROUND(AVG(sx.prix_plafond)) as prix_plafond,
+               COUNT(sx.id) as nb_prefectures
         FROM simprix_prix sx
         JOIN simprix_produits sp ON sp.id = sx.produit_id
         WHERE sx.date_releve = (SELECT MAX(date_releve) FROM simprix_prix)
-    """
-    params = []
-    if region_code:
-        query += " AND sx.region_code = $1"
-        params.append(region_code)
+          AND sx.region_code = ANY($1)
+        GROUP BY sp.code, sp.nom, sp.unite, sp.image_url, sp.ordre
+        ORDER BY sp.ordre
+    """, prefectures)
 
-    query += " ORDER BY sp.ordre, sx.region_nom"
-    rows = await conn.fetch(query, *params)
-    return [dict(r) for r in rows]
+    results = []
+    for r in rows:
+        results.append({
+            "code": r["code"],
+            "nom": r["nom"],
+            "unite": r["unite"],
+            "image_url": r["image_url"],
+            "ordre": r["ordre"],
+            "region_code": region_code,
+            "region_nom": region_nom,
+            "prix_plafond": float(r["prix_plafond"]),
+            "nb_prefectures": r["nb_prefectures"],
+        })
+
+    return results
 
 
 async def get_simprix_regions(conn) -> list[dict]:
-    """Get list of regions with price data."""
-    rows = await conn.fetch("""
-        SELECT DISTINCT region_code, region_nom
-        FROM simprix_prix
-        ORDER BY region_nom
+    """Get list of 8 main regions with price data."""
+    # Only return main regions that have data
+    available = await conn.fetch("""
+        SELECT DISTINCT region_code FROM simprix_prix
     """)
-    return [dict(r) for r in rows]
+    available_codes = {r["region_code"] for r in available}
+
+    regions = []
+    for code, info in REGION_PREFECTURES.items():
+        # Check if at least one prefecture has data
+        has_data = any(p in available_codes for p in info["prefectures"])
+        if has_data:
+            nb_pref = sum(1 for p in info["prefectures"] if p in available_codes)
+            regions.append({
+                "region_code": code,
+                "region_nom": info["nom"],
+                "nb_prefectures": nb_pref,
+            })
+
+    return regions
 
 
 # Keep old functions for compatibility

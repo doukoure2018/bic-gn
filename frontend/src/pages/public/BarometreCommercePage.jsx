@@ -109,63 +109,23 @@ export default function BarometreCommercePage() {
                 <h3 className="font-semibold text-cred flex items-center gap-2">
                   <ShoppingCart size={20} /> Prix des denrées de première nécessité
                 </h3>
-                <p className="text-[10px] text-gray-500 mt-1">Source: SIMPRIX — simprix.gov.gn (DNCIC)</p>
+                <p className="text-[10px] text-gray-500 mt-1">Source: SIMPRIX — simprix.gov.gn (DNCIC) — Prix moyen par région (moyenne des préfectures)</p>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-cred" />
                 <select
                   value={selectedRegion}
                   onChange={(e) => handleRegionChange(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-cred focus:border-transparent outline-none min-w-[200px]"
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-cred focus:border-transparent outline-none min-w-[200px]"
                 >
                   <option value="conakry">CONAKRY</option>
-                  <optgroup label="BOKÉ">
-                    <option value="boke">Boké</option>
-                    <option value="boffa">Boffa</option>
-                    <option value="fria">Fria</option>
-                    <option value="gaoual">Gaoual</option>
-                    <option value="koundara">Koundara</option>
-                  </optgroup>
-                  <optgroup label="KINDIA">
-                    <option value="kindia">Kindia</option>
-                    <option value="coyah">Coyah</option>
-                    <option value="dubreka">Dubréka</option>
-                    <option value="forecariah">Forécariah</option>
-                    <option value="telimele">Télimélé</option>
-                  </optgroup>
-                  <optgroup label="LABÉ">
-                    <option value="labe">Labé</option>
-                    <option value="koubia">Koubia</option>
-                    <option value="lelouma">Lélouma</option>
-                    <option value="mali">Mali</option>
-                    <option value="tougue">Tougué</option>
-                  </optgroup>
-                  <optgroup label="FARANAH">
-                    <option value="faranah">Faranah</option>
-                    <option value="dabola">Dabola</option>
-                    <option value="dinguiraye">Dinguiraye</option>
-                    <option value="kissidougou">Kissidougou</option>
-                  </optgroup>
-                  <optgroup label="NZÉRÉKORÉ">
-                    <option value="nzerekore">Nzérékoré</option>
-                    <option value="beyla">Beyla</option>
-                    <option value="gueckedou">Guéckédou</option>
-                    <option value="lola">Lola</option>
-                    <option value="macenta">Macenta</option>
-                    <option value="yomou">Yomou</option>
-                  </optgroup>
-                  <optgroup label="MAMOU">
-                    <option value="mamou">Mamou</option>
-                    <option value="dalaba">Dalaba</option>
-                    <option value="pita">Pita</option>
-                  </optgroup>
-                  <optgroup label="KANKAN">
-                    <option value="kankan">Kankan</option>
-                    <option value="siguiri">Siguiri</option>
-                    <option value="mandiana">Mandiana</option>
-                    <option value="kouroussa">Kouroussa</option>
-                    <option value="kerouane">Kérouané</option>
-                  </optgroup>
+                  <option value="boke">BOKÉ</option>
+                  <option value="kindia">KINDIA</option>
+                  <option value="labe">LABÉ</option>
+                  <option value="faranah">FARANAH</option>
+                  <option value="nzerekore">NZÉRÉKORÉ</option>
+                  <option value="mamou">MAMOU</option>
+                  <option value="kankan">KANKAN</option>
                 </select>
               </div>
             </div>
@@ -195,13 +155,18 @@ export default function BarometreCommercePage() {
                       </div>
                       <h4 className="text-xs font-semibold text-gray-800 leading-tight mb-2">{p.nom}</h4>
                       <div className="flex items-baseline justify-between">
-                        <span className="text-lg font-bold text-cred">{formatNumber(p.prix_plafond)}</span>
+                        <span className="text-lg font-bold text-cred">{formatNumber(p.prix_plafond)} <span className="text-[9px] font-normal text-gray-400">GNF</span></span>
                         <span className="text-[10px] text-gray-400">{p.unite}</span>
                       </div>
                       {p.region_nom && (
-                        <div className="flex items-center gap-1 mt-2 bg-gray-50 rounded px-2 py-1">
-                          <MapPin size={10} className="text-cred" />
-                          <span className="text-[10px] text-gray-600 font-medium">{p.region_nom}</span>
+                        <div className="flex items-center justify-between mt-2 bg-gray-50 rounded px-2 py-1">
+                          <div className="flex items-center gap-1">
+                            <MapPin size={10} className="text-cred" />
+                            <span className="text-[10px] text-gray-600 font-medium">{p.region_nom}</span>
+                          </div>
+                          {p.nb_prefectures > 1 && (
+                            <span className="text-[9px] text-gray-400">moy. {p.nb_prefectures} préf.</span>
+                          )}
                         </div>
                       )}
                     </div>
