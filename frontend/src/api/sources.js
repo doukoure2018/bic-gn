@@ -12,6 +12,7 @@ export const getSousSecteurs = (params) => client.get('/sources/sous-secteurs', 
 
 export const getSimprixPrix = (region) => client.get('/sources/prix', { params: { region } });
 export const getSimprixRegions = () => client.get('/sources/prix/regions');
+export const getCommodites = (categorie) => client.get('/sources/commodites', { params: { categorie } });
 
 export const syncWorldBank = () => client.post('/sources/sync/worldbank');
 export const syncOpenDataAfrica = () => client.post('/sources/sync/opendatafrica');

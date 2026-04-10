@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ShoppingCart, Download, FileDown, MapPin } from 'lucide-react';
+import { ShoppingCart, Download, FileDown, MapPin, Fuel, Gem, Wheat, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { getCommerce } from '../../api/barometre';
-import { getSimprixPrix, getSimprixRegions } from '../../api/sources';
+import { getSimprixPrix, getSimprixRegions, getCommodites } from '../../api/sources';
 import { useLanguage } from '../../hooks/useLanguage';
 import BarChart from '../../components/charts/BarChart';
 import PieChart from '../../components/charts/PieChart';
@@ -16,16 +16,19 @@ export default function BarometreCommercePage() {
   const [prix, setPrix] = useState([]);
   const [regions, setRegions] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState('conakry');
+  const [commodites, setCommodites] = useState([]);
 
   useEffect(() => {
     Promise.all([
       getCommerce().catch(() => ({ data: {} })),
       getSimprixRegions().catch(() => ({ data: [] })),
       getSimprixPrix('conakry').catch(() => ({ data: [] })),
-    ]).then(([com, reg, pr]) => {
+      getCommodites().catch(() => ({ data: [] })),
+    ]).then(([com, reg, pr, cmd]) => {
       setData(com.data);
       setRegions(reg.data);
       setPrix(pr.data);
+      setCommodites(cmd.data);
       setLoading(false);
     });
   }, []);
@@ -202,6 +205,49 @@ export default function BarometreCommercePage() {
               </div>
             )}
           </div>
+
+          {/* Commodités internationales */}
+          {commodites.length > 0 && (
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="px-6 py-4 border-b">
+                <h3 className="font-semibold text-gray-800">Cours des matières premières</h3>
+                <p className="text-[10px] text-gray-400 mt-1">Source: Trading Economics — Mise à jour dynamique</p>
+              </div>
+              <div className="p-6">
+                {['energie', 'metaux', 'agriculture'].map((cat) => {
+                  const items = commodites.filter(c => c.categorie === cat);
+                  if (!items.length) return null;
+                  const catLabel = cat === 'energie' ? 'Énergie' : cat === 'metaux' ? 'Métaux' : 'Agriculture';
+                  const catColor = cat === 'energie' ? 'text-cred' : cat === 'metaux' ? 'text-gold' : 'text-cgreen';
+                  const catBg = cat === 'energie' ? 'bg-cred/5' : cat === 'metaux' ? 'bg-gold/5' : 'bg-cgreen/5';
+                  return (
+                    <div key={cat} className="mb-6 last:mb-0">
+                      <h4 className={`text-xs font-semibold uppercase tracking-wider mb-3 ${catColor}`}>{catLabel}</h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {items.map((c) => (
+                          <div key={c.code} className={`${catBg} rounded-lg p-3 border border-gray-100`}>
+                            <p className="text-[10px] text-gray-500 font-medium">{c.nom}</p>
+                            <p className="text-lg font-bold text-gray-800 mt-1">
+                              {Number(c.prix).toLocaleString('fr-FR', { maximumFractionDigits: 2 })}
+                            </p>
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-[9px] text-gray-400">{c.unite}</span>
+                              {c.variation != null && (
+                                <span className={`text-[10px] font-medium flex items-center gap-0.5 ${Number(c.variation) > 0 ? 'text-cgreen' : Number(c.variation) < 0 ? 'text-cred' : 'text-gray-400'}`}>
+                                  {Number(c.variation) > 0 ? <TrendingUp size={10} /> : Number(c.variation) < 0 ? <TrendingDown size={10} /> : <Minus size={10} />}
+                                  {Number(c.variation) > 0 ? '+' : ''}{Number(c.variation).toFixed(2)}%
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* World Bank + Trading Economics */}
           <div className="bg-white rounded-lg shadow-md overflow-hidden">

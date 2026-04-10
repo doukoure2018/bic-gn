@@ -108,6 +108,42 @@ async def prix_evolution(code_produit: str, conn=Depends(get_db)):
     return await get_prix_evolution(conn, code_produit)
 
 
+# --- Commodités (Trading Economics) ---
+
+@router.get("/commodites")
+async def list_commodites(categorie: str | None = None, conn=Depends(get_db)):
+    """Get commodity prices, filterable by category (energie, metaux, agriculture)."""
+    query = "SELECT * FROM commodites WHERE prix IS NOT NULL"
+    params = []
+    if categorie:
+        query += " AND categorie = $1"
+        params.append(categorie)
+    query += " ORDER BY categorie, ordre"
+    rows = await conn.fetch(query, *params)
+    return [dict(r) for r in rows]
+
+
+@router.post("/commodites-import")
+async def import_commodites(
+    data: list[dict],
+    conn=Depends(get_db),
+    current_user=Depends(require_role("editeur")),
+):
+    """Import commodity prices from external scraper."""
+    from datetime import datetime
+    count = 0
+    for item in data:
+        code = item.get("code")
+        prix = item.get("prix")
+        variation = item.get("variation")
+        if code and prix:
+            await conn.execute("""
+                UPDATE commodites SET prix = $1, variation = $2, date_releve = $3 WHERE code = $4
+            """, float(prix), float(variation) if variation else None, datetime.utcnow(), code)
+            count += 1
+    return {"imported": count}
+
+
 @router.post("/simprix-import")
 async def import_simprix_prices(
     data: dict,
