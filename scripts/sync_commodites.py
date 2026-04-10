@@ -53,12 +53,19 @@ async def scrape_commodities():
     commodities = []
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page()
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled"]
+        )
+        ctx = await browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            viewport={"width": 1920, "height": 1080},
+        )
+        page = await ctx.new_page()
 
         print("Loading Trading Economics commodities page...")
-        await page.goto(TE_URL, wait_until="networkidle", timeout=30000)
-        await page.wait_for_timeout(5000)
+        await page.goto(TE_URL, wait_until="domcontentloaded", timeout=60000)
+        await page.wait_for_timeout(8000)
 
         html = await page.content()
         await browser.close()
