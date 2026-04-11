@@ -295,6 +295,7 @@ export default function BarometreCommercePage() {
                 bars={[{ key: 'score', color: '#C41E3A', name: 'Score (0-5)' }]}
                 xKey="name"
                 height={280}
+                colorByValue
               />
             </div>
             <div className="bg-white rounded-lg shadow-md p-5">

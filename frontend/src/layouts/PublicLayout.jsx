@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Factory, Store, BarChart3, FileText, Menu, X, Search, MapPin, Phone, Mail, ExternalLink, ChevronRight } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
@@ -11,9 +11,6 @@ const navLinks = [
   { key: 'commerce', path: '/barometre/commerce', label: 'Commerce' },
   { key: 'donnees', path: '/donnees', label: 'Données' },
   { key: 'creer-entreprise', path: 'https://apip.gov.gn/comment-creer-mon-entreprise/', label: 'Créer mon Entreprise', external: true },
-  { key: 'publications', path: '/publications', label: 'Publications' },
-  { key: 'actualites', path: '/actualites', label: 'Actualités' },
-  { key: 'partenaires', path: '/partenaires', label: 'Partenaires' },
   { key: 'contact', path: '/contact', label: 'Contact' },
 ];
 
@@ -113,34 +110,51 @@ export default function PublicLayout() {
   const { t } = useLanguage();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 120);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       {/* Navbar - 2 lignes */}
       <header className="sticky top-0 z-50 shadow-lg">
 
-        {/* Ligne 1 (blanc) : Armoirie+texte (gauche) | Simandou (centre) | Logo ONCP (droite) */}
-        <div className="bg-white border-b">
-          <div className="mx-auto max-w-7xl px-4 lg:px-8 py-3 flex items-center justify-between gap-4">
-            <Link to="/" className="flex flex-col items-center no-underline shrink-0">
-              {location.pathname === '/' ? (
-                <>
-                  <img src="/images/armoirie.png" alt="Republique de Guinee" className="h-16 w-auto" />
-                  <p className="text-[11px] text-navy font-bold leading-tight mt-1 hidden sm:block">Republique de Guinee</p>
-                  <p className="text-[10px] text-gray-500 leading-tight hidden sm:block">Ministere de l'Industrie et du Commerce</p>
-                </>
-              ) : (
-                <img src="/images/logo-barometre.png" alt="Barometre Industrie & Commerce" style={{ height: '5.5rem' }} className="w-auto" />
-              )}
-            </Link>
-            <img src="/images/simandou2040.png" alt="Programme Simandou 2040" style={{ height: '9.5rem' }} className="w-auto hidden md:block" />
-            <img src="/images/logo-oncp.png" alt="ONCP" style={{ height: '6rem' }} className="w-auto hidden sm:block" />
+        {/* Ligne 1 : Logos (visible quand pas scrollé) */}
+        {!scrolled && (
+          <div className="bg-white border-b transition-all duration-300">
+            <div className="mx-auto max-w-7xl px-4 lg:px-8 flex items-center justify-between" style={{ padding: '0 2rem' }}>
+              <Link to="/" className="flex flex-col items-center no-underline shrink-0">
+                {location.pathname === '/' ? (
+                  <>
+                    <img src="/images/armoirie.png" alt="Republique de Guinee" className="h-12 w-auto" />
+                    <p className="text-[10px] text-navy font-bold leading-tight hidden sm:block">Republique de Guinee</p>
+                    <p className="text-[9px] text-navy font-bold leading-tight hidden sm:block">Ministere de l'Industrie et du Commerce</p>
+                  </>
+                ) : (
+                  <img src="/images/logo-barometre.png" alt="Barometre Industrie & Commerce" style={{ height: '4.5rem' }} className="w-auto" />
+                )}
+              </Link>
+              <img src="/images/simandou2040.png" alt="Programme Simandou 2040" style={{ height: '7rem' }} className="w-auto hidden md:block" />
+              <img src="/images/logo-oncp.png" alt="ONCP" style={{ height: '4.5rem' }} className="w-auto hidden sm:block" />
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Ligne 2 (navy) : Menu | Recherche | FR/EN */}
-        <div className="bg-navy text-cream">
-          <div className="mx-auto max-w-7xl px-4 lg:px-8 flex items-center justify-between gap-2">
+        {/* Ligne 2 : Menu (avec logo baromètre quand scrollé) */}
+        <div className={`text-cream ${scrolled ? 'flex' : ''}`}>
+          {/* Section logo fond blanc (visible quand scrollé) */}
+          {scrolled && (
+            <Link to="/" className="shrink-0 no-underline bg-white flex items-center px-6">
+              <img src="/images/logo-barometre.png" alt="BIC-GN" style={{ height: '5rem' }} className="w-auto" />
+            </Link>
+          )}
+          {/* Section menu fond navy */}
+          <div className="bg-navy flex-1">
+          <div className="px-4 lg:px-8 flex items-center justify-center gap-2">
             <nav className="hidden xl:flex items-center gap-0.5 py-2">
               {navLinks.map((link) => (
                 link.external ? (
@@ -163,6 +177,7 @@ export default function PublicLayout() {
               <SearchBar />
               <LanguageSwitch />
             </div>
+          </div>
           </div>
         </div>
 

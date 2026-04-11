@@ -12,6 +12,7 @@ from app.routes.contact import router as contact_router
 from app.routes.referentiels import router as referentiels_router
 from app.routes.sources import router as sources_router
 from app.routes.search import router as search_router
+from app.routes.entreprises import router as entreprises_router
 
 api_router = APIRouter(prefix="/api")
 
@@ -28,3 +29,4 @@ api_router.include_router(contact_router)
 api_router.include_router(referentiels_router)
 api_router.include_router(sources_router)
 api_router.include_router(search_router)
+api_router.include_router(entreprises_router)

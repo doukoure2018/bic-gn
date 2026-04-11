@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, BarChart3, Database, ClipboardList,
-  FileText, Newspaper, Download, Globe, LogOut, Menu, X,
+  FileText, Newspaper, Download, Globe, Factory, LogOut, Menu, X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
@@ -11,6 +11,7 @@ const menuItems = [
   { label: 'Utilisateurs', path: '/admin/utilisateurs', icon: Users, roles: ['super_admin'] },
   { label: 'Indicateurs', path: '/admin/indicateurs', icon: BarChart3, roles: ['editeur'] },
   { label: 'Valeurs', path: '/admin/valeurs', icon: Database, roles: ['editeur'] },
+  { label: 'Entreprises', path: '/admin/entreprises', icon: Factory, roles: ['editeur'] },
   { label: 'Enquêtes', path: '/admin/enquetes', icon: ClipboardList, roles: ['editeur'] },
   { label: 'Publications', path: '/admin/publications', icon: FileText, roles: ['editeur'] },
   { label: 'Actualités', path: '/admin/actualites', icon: Newspaper, roles: ['editeur'] },

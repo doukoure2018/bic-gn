@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Factory, TrendingUp, TrendingDown, Minus, Download, FileDown } from 'lucide-react';
+import { Factory, FileDown, Users, DollarSign, AlertTriangle } from 'lucide-react';
 import { getIndustrie } from '../../api/barometre';
+import { getEntreprisesPublic, getAgregation } from '../../api/entreprises';
 import { useLanguage } from '../../hooks/useLanguage';
 import LineChart from '../../components/charts/LineChart';
 import BarChart from '../../components/charts/BarChart';
@@ -9,229 +10,299 @@ import Loading from '../../components/common/Loading';
 import Badge from '../../components/common/Badge';
 import { formatNumber } from '../../utils/formatters';
 
+const SECTEUR_TABS = [
+  { code: null, label: 'Vue d\'ensemble' },
+  { code: 'MINES', label: 'MINES' },
+  { code: 'AGROINDUS', label: 'AGROINDUS' },
+  { code: 'BTP', label: 'BTP' },
+  { code: 'MANUFACTURES', label: 'MANUFACTURES' },
+  { code: 'ENERGIE', label: 'ENERGIE' },
+];
+
+const SECTEUR_LABELS = {
+  MINES: 'Mines & Métallurgie',
+  AGROINDUS: 'Agro-industrie',
+  BTP: 'BTP & Construction',
+  MANUFACTURES: 'Manufactures légères',
+  ENERGIE: 'Énergie',
+};
+
 export default function BarometreIndustriePage() {
   const { t } = useLanguage();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState(null);
+  const [entreprises, setEntreprises] = useState([]);
+  const [agregation, setAgregation] = useState([]);
 
   useEffect(() => {
-    getIndustrie()
-      .then((res) => setData(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      getIndustrie().catch(() => ({ data: {} })),
+      getAgregation().catch(() => ({ data: [] })),
+    ]).then(([ind, agr]) => {
+      setData(ind.data);
+      setAgregation(agr.data);
+      setLoading(false);
+    });
   }, []);
+
+  const handleTabChange = (code) => {
+    setActiveTab(code);
+    if (code) {
+      getEntreprisesPublic(code).then((res) => setEntreprises(res.data)).catch(() => setEntreprises([]));
+    }
+  };
 
   if (loading) return <Loading />;
 
-  const sousSecteurs = data?.sous_secteurs || [];
-  const ipiData = data?.ipi_data || [];
   const wbData = data?.worldbank || [];
+  const ipiData = data?.ipi_data || [];
   const contraintes = data?.contraintes || [];
   const perspectives = data?.perspectives;
-
-  const getWb = (code) => {
-    const item = wbData.find(d => d.indicateur_code === code);
-    return item ? { valeur: Number(item.valeur).toFixed(1), annee: item.annee, nom: item.indicateur_nom } : null;
-  };
+  const sousSecteurs = data?.sous_secteurs || [];
+  const currentAgr = activeTab ? agregation.find(a => a.secteur_code === activeTab) : null;
 
   return (
     <div className="flex flex-col bg-gray-50">
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-900 to-cgreen" />
-        <div className="relative z-10 flex flex-col items-center px-4 py-14 text-center">
-          <Factory size={48} className="text-cream mb-4" />
-          <h1 className="font-mono text-2xl font-extrabold uppercase tracking-widest text-cream md:text-4xl">
-            Baromètre Industrie
-          </h1>
-          <div className="mt-3 inline-block rounded bg-gold px-6 py-1">
-            <span className="text-sm font-bold uppercase tracking-[0.3em] text-navy">Guinée</span>
+      {/* Header compact */}
+      <div className="bg-gradient-to-r from-green-900 to-cgreen text-cream px-4 py-3">
+        <div className="mx-auto max-w-7xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Factory size={24} />
+            <h1 className="text-lg font-bold">Guinée : Baromètre Industrie</h1>
           </div>
-          <p className="mt-4 text-cream/80">Indicateurs du secteur industriel guinéen</p>
-          <a href="/api/export/donnees/IND" download className="no-underline mt-6">
-            <button className="flex items-center gap-2 rounded-full bg-gold px-8 py-3 text-sm font-semibold text-navy hover:bg-gold/90 transition cursor-pointer border-0 shadow-lg">
-              <FileDown className="h-5 w-5" /> Telecharger le Rapport Industrie
+          <a href="/api/export/donnees/IND" download className="no-underline">
+            <button className="flex items-center gap-1 rounded-full bg-gold px-4 py-2 text-xs font-semibold text-navy hover:bg-gold/90 transition cursor-pointer border-0">
+              <FileDown className="h-4 w-4" /> Rapport Industrie
             </button>
           </a>
         </div>
-      </section>
+      </div>
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 lg:px-8">
-        <div className="flex flex-col gap-8">
+      {/* Onglets */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 flex items-center gap-0 overflow-x-auto">
+          {SECTEUR_TABS.map((tab) => (
+            <button
+              key={tab.label}
+              onClick={() => handleTabChange(tab.code)}
+              className={`px-4 py-3 text-xs font-semibold whitespace-nowrap border-b-2 transition cursor-pointer bg-transparent ${
+                activeTab === tab.code
+                  ? 'border-cgreen text-cgreen'
+                  : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-          {/* KPI World Bank */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { code: 'NV.IND.TOTL.ZS', color: '#0A1F44', fallback: '25.1' },
-              { code: 'NV.IND.MANF.ZS', color: '#2E8B57', fallback: '12.8' },
-              { code: 'SL.IND.EMPL.ZS', color: '#D4A829', fallback: '14.2' },
-              { code: 'NE.EXP.GNFS.ZS', color: '#C41E3A', fallback: '41.4' },
-            ].map(({ code, color, fallback }) => {
-              const wb = getWb(code);
-              return (
-                <div key={code} className="bg-white rounded-lg shadow-md p-4">
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">{wb?.nom || code}</p>
-                  <p className="text-2xl font-bold mt-1" style={{ color }}>{wb?.valeur || fallback}%</p>
-                  <p className="text-xs text-gray-400 mt-1">Source: World Bank ({wb?.annee || '—'})</p>
-                </div>
-              );
-            })}
-          </div>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8">
 
-          {/* Sous-secteurs industriels */}
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="bg-cgreen/10 px-6 py-4 border-b">
-              <h3 className="font-semibold text-cgreen flex items-center gap-2">
-                <Factory size={20} /> Sous-secteurs industriels (classification ISIC)
-              </h3>
+        {/* ========== VUE D'ENSEMBLE ========== */}
+        {activeTab === null && (
+          <div className="flex flex-col gap-6">
+            {/* KPI World Bank */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { code: 'NV.IND.TOTL.ZS', color: '#0A1F44', label: 'Industrie (% PIB)' },
+                { code: 'NV.IND.MANF.ZS', color: '#2E8B57', label: 'Manufacturier (% PIB)' },
+                { code: 'SL.IND.EMPL.ZS', color: '#D4A829', label: 'Emploi industriel (% total)' },
+                { code: 'NE.EXP.GNFS.ZS', color: '#C41E3A', label: 'Exportations (% PIB)' },
+              ].map(({ code, color, label }) => {
+                const wb = wbData.find(d => d.indicateur_code === code);
+                return (
+                  <div key={code} className="bg-white rounded-lg shadow-sm border p-4">
+                    <p className="text-[10px] text-gray-500 uppercase tracking-wide">{wb?.indicateur_nom || label}</p>
+                    <p className="text-2xl font-bold mt-1" style={{ color }}>{wb ? `${Number(wb.valeur).toFixed(1)}%` : '—'}</p>
+                    <p className="text-[9px] text-gray-400 mt-1">World Bank {wb?.annee || ''}</p>
+                  </div>
+                );
+              })}
             </div>
-            <div className="overflow-x-auto">
+
+            {/* KPI agrégés par secteur */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+              {agregation.map((agr) => (
+                <div key={agr.secteur_code} className="bg-white rounded-lg shadow-sm border p-4 hover:shadow-md transition cursor-pointer" onClick={() => handleTabChange(agr.secteur_code)}>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium">{SECTEUR_LABELS[agr.secteur_code] || agr.secteur_code}</p>
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Factory size={14} className="text-cgreen" />
+                      <span className="text-xs text-gray-600">{agr.nb_entreprises} entreprises</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users size={14} className="text-navy" />
+                      <span className="text-xs text-gray-600">{formatNumber(agr.total_emplois)} emplois</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <DollarSign size={14} className="text-gold" />
+                      <span className="text-xs text-gray-600">{formatNumber(agr.total_ide, 1)} M USD</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Sous-secteurs ISIC */}
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+              <div className="bg-cgreen/10 px-6 py-3 border-b">
+                <h3 className="font-semibold text-cgreen text-sm">Sous-secteurs industriels (ISIC)</h3>
+              </div>
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-50 border-b">
-                    <th className="px-6 py-3 text-left font-semibold text-gray-600">Sous-secteur</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-600">Code ISIC</th>
-                    <th className="px-6 py-3 text-right font-semibold text-gray-600">Poids (%)</th>
-                    <th className="px-6 py-3 text-left font-semibold text-gray-600">Barre</th>
-                  </tr>
-                </thead>
+                <thead><tr className="bg-gray-50 border-b">
+                  <th className="px-6 py-2 text-left font-semibold text-gray-600 text-xs">Sous-secteur</th>
+                  <th className="px-6 py-2 text-left font-semibold text-gray-600 text-xs">ISIC</th>
+                  <th className="px-6 py-2 text-right font-semibold text-gray-600 text-xs">Poids</th>
+                </tr></thead>
                 <tbody>
                   {sousSecteurs.map((ss) => (
-                    <tr key={ss.code} className="border-b hover:bg-green-50/50">
-                      <td className="px-6 py-3 font-medium">{ss.nom}</td>
-                      <td className="px-6 py-3 text-gray-500">{ss.code_isic || '—'}</td>
-                      <td className="px-6 py-3 text-right font-bold text-cgreen">
-                        {ss.poids ? `${Number(ss.poids).toFixed(1)}%` : '—'}
-                      </td>
-                      <td className="px-6 py-3 w-48">
-                        {ss.poids && (
-                          <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-cgreen rounded-full" style={{ width: `${Number(ss.poids)}%` }} />
-                          </div>
-                        )}
-                      </td>
+                    <tr key={ss.code} className="border-b hover:bg-green-50/30">
+                      <td className="px-6 py-2 text-xs">{ss.nom}</td>
+                      <td className="px-6 py-2 text-xs text-gray-500">{ss.code_isic || '—'}</td>
+                      <td className="px-6 py-2 text-xs text-right font-semibold text-cgreen">{ss.poids ? `${Number(ss.poids).toFixed(1)}%` : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-          </div>
 
-          {/* IPI Trimestriel (données réelles INS) */}
-          {ipiData.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md p-5">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4">
-                Indice de Production Industrielle (IPI) — données INS
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                {ipiData.map((d, i) => (
-                  <div key={i} className="border rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500">T{d.trimestre} {d.annee}</p>
-                    <p className="text-2xl font-bold text-cgreen mt-1">+{Number(d.valeur).toFixed(1)}%</p>
-                    <p className="text-xs text-gray-400 mt-1">Variation glissement annuel</p>
-                  </div>
-                ))}
-              </div>
-              <LineChart
-                data={ipiData.map(d => ({
-                  periode: `T${d.trimestre} ${d.annee}`,
-                  ipi: Number(d.valeur),
-                }))}
-                lines={[{ key: 'ipi', color: '#2E8B57', name: 'IPI (variation %)' }]}
-                height={250}
-              />
-            </div>
-          )}
-
-          {/* Contraintes & Perspectives */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Contraintes */}
-            <div className="bg-white rounded-lg shadow-md p-5">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4">
-                Contraintes des entreprises industrielles
-              </h3>
-              {contraintes.length > 0 ? (
-                <BarChart
-                  data={contraintes.map(c => ({ name: c.nom, score: Number(c.score) }))}
-                  bars={[{ key: 'score', color: '#C41E3A', name: 'Score (0-5)' }]}
-                  xKey="name"
-                  height={280}
-                />
-              ) : (
-                <BarChart
-                  data={[
-                    { name: 'Électricité', score: 4.0 }, { name: 'Financement', score: 3.8 },
-                    { name: 'Fiscalité', score: 3.5 }, { name: 'Infrastructures', score: 3.5 },
-                    { name: 'Transport', score: 3.2 }, { name: 'Informel', score: 3.0 },
-                    { name: 'Douanes', score: 2.8 }, { name: 'Corruption', score: 2.5 },
-                  ]}
-                  bars={[{ key: 'score', color: '#C41E3A', name: 'Score (0-5)' }]}
-                  xKey="name"
-                  height={280}
-                />
-              )}
-            </div>
-
-            {/* Perspectives */}
-            <div className="bg-white rounded-lg shadow-md p-5">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4">
-                Perspectives industrielles
-              </h3>
-              <PieChart
-                data={[
-                  { name: 'Optimiste', value: Number(perspectives?.optimiste || 40) },
-                  { name: 'Stable', value: Number(perspectives?.stable || 35) },
-                  { name: 'Pessimiste', value: Number(perspectives?.pessimiste || 25) },
-                ]}
-                height={280}
-              />
-              {perspectives?.nombre_repondants && (
-                <p className="text-xs text-gray-400 text-center mt-2">
-                  Basé sur {perspectives.nombre_repondants} entreprises interrogées
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Indicateurs détaillés */}
-          {data?.indicateurs?.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="px-6 py-4 border-b flex items-center justify-between">
-                <h3 className="font-semibold text-gray-800">Indicateurs détaillés</h3>
-                <a href="/api/export/donnees/IND" download className="no-underline">
-                  <button className="flex items-center gap-1 bg-cgreen text-cream px-3 py-1.5 rounded text-xs font-medium cursor-pointer border-0 hover:bg-cgreen/90">
-                    <Download size={14} /> Export Excel
-                  </button>
-                </a>
-              </div>
-              <div className="divide-y">
-                {data.indicateurs.map((ind, i) => (
-                  <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-green-50/30">
-                    <div>
-                      <p className="font-medium text-sm">{ind.nom}</p>
-                      <p className="text-xs text-gray-500">{ind.categorie}</p>
+            {/* IPI */}
+            {ipiData.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm border p-5">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">IPI Trimestriel — INS Guinée</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  {ipiData.map((d, i) => (
+                    <div key={i} className="border rounded-lg p-3 text-center bg-cgreen/5">
+                      <p className="text-[10px] text-gray-500">T{d.trimestre} {d.annee}</p>
+                      <p className="text-xl font-bold text-cgreen">+{Number(d.valeur).toFixed(1)}%</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-lg font-bold text-cgreen">
-                        {formatNumber(ind.valeur, 1)}
-                        <span className="text-xs font-normal text-gray-500 ml-1">{ind.unite}</span>
-                      </span>
-                      {ind.tendance && <Badge status={ind.tendance}>{ind.tendance}</Badge>}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Contraintes & Perspectives */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg shadow-sm border p-5">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">Contraintes</h3>
+                {contraintes.length > 0
+                  ? <BarChart data={contraintes.map(c => ({ name: c.nom, score: Number(c.score) }))} bars={[{ key: 'score', color: '#C41E3A', name: 'Score' }]} xKey="name" height={220} colorByValue />
+                  : <p className="text-gray-400 text-center py-8 text-sm">Données non disponibles</p>}
+              </div>
+              <div className="bg-white rounded-lg shadow-sm border p-5">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">Perspectives</h3>
+                {perspectives
+                  ? <PieChart data={[{ name: 'Optimiste', value: Number(perspectives.optimiste||0) }, { name: 'Stable', value: Number(perspectives.stable||0) }, { name: 'Pessimiste', value: Number(perspectives.pessimiste||0) }]} height={220} />
+                  : <p className="text-gray-400 text-center py-8 text-sm">Données non disponibles</p>}
               </div>
             </div>
-          )}
 
-          {/* Sources */}
-          <div className="rounded-lg bg-navy/5 border border-navy/10 p-4">
-            <p className="text-xs text-gray-500 text-center">
-              Sources : INS Guinée (IPI trimestriel) • Banque Mondiale (indicateurs macro) • Enquêtes ONCP (contraintes, perspectives)
-            </p>
+            <div className="rounded-lg bg-navy/5 border border-navy/10 p-3">
+              <p className="text-[10px] text-gray-500 text-center">Sources : INS Guinée • Banque Mondiale • Enquêtes ONCP</p>
+            </div>
           </div>
+        )}
 
-        </div>
+        {/* ========== ONGLET SOUS-SECTEUR ========== */}
+        {activeTab !== null && (
+          <div className="flex flex-col gap-6">
+            {/* Agrégation */}
+            {currentAgr && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
+                  <p className="text-[10px] text-gray-500 uppercase">Entreprises</p>
+                  <p className="text-2xl font-bold text-navy">{currentAgr.nb_entreprises}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
+                  <p className="text-[10px] text-gray-500 uppercase">Total emplois</p>
+                  <p className="text-2xl font-bold text-cgreen">{formatNumber(currentAgr.total_emplois)}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
+                  <p className="text-[10px] text-gray-500 uppercase">Emploi femmes</p>
+                  <p className="text-2xl font-bold text-gold">{formatNumber(currentAgr.total_emploi_femmes)}</p>
+                </div>
+                <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
+                  <p className="text-[10px] text-gray-500 uppercase">IDE reçus</p>
+                  <p className="text-2xl font-bold text-cred">{formatNumber(currentAgr.total_ide, 1)} M$</p>
+                </div>
+              </div>
+            )}
+
+            {/* Tableau entreprises */}
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+              <div className="bg-cgreen/10 px-6 py-3 border-b flex items-center justify-between">
+                <h3 className="font-semibold text-cgreen text-sm">{SECTEUR_LABELS[activeTab]}</h3>
+                <Badge color="green">{entreprises.length} entreprises</Badge>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead><tr className="bg-gray-50 border-b">
+                    <th className="px-4 py-2 text-left font-semibold text-gray-600">Entreprise</th>
+                    <th className="px-4 py-2 text-left font-semibold text-gray-600">Région</th>
+                    <th className="px-4 py-2 text-right font-semibold text-gray-600">Prod. installée</th>
+                    <th className="px-4 py-2 text-right font-semibold text-gray-600">Prod. réalisée</th>
+                    <th className="px-4 py-2 text-right font-semibold text-gray-600">Emplois</th>
+                    <th className="px-4 py-2 text-right font-semibold text-gray-600">% Femmes</th>
+                    <th className="px-4 py-2 text-right font-semibold text-gray-600">IDE (M$)</th>
+                    <th className="px-4 py-2 text-left font-semibold text-gray-600">Contraintes</th>
+                  </tr></thead>
+                  <tbody>
+                    {entreprises.map((e) => (
+                      <tr key={e.id} className="border-b hover:bg-green-50/30">
+                        <td className="px-4 py-2 font-medium">{e.nom_entreprise}</td>
+                        <td className="px-4 py-2 text-gray-500">{e.region}</td>
+                        <td className="px-4 py-2 text-right">{e.prod_installee} {e.unite_production}/y</td>
+                        <td className="px-4 py-2 text-right font-semibold text-cgreen">{e.prod_realisee} {e.unite_production}</td>
+                        <td className="px-4 py-2 text-right">{formatNumber(e.emplois)}</td>
+                        <td className="px-4 py-2 text-right">{e.pct_emploi_femmes}%</td>
+                        <td className="px-4 py-2 text-right font-semibold text-gold">{e.ide_recus}</td>
+                        <td className="px-4 py-2">
+                          <span className="inline-flex items-center gap-1 text-cred text-[10px]">
+                            <AlertTriangle size={10} /> {e.contraintes}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    {currentAgr && (
+                      <tr className="bg-navy/5 font-bold border-t-2">
+                        <td className="px-4 py-2">TOTAL</td>
+                        <td className="px-4 py-2"></td>
+                        <td className="px-4 py-2"></td>
+                        <td className="px-4 py-2"></td>
+                        <td className="px-4 py-2 text-right">{formatNumber(currentAgr.total_emplois)}</td>
+                        <td className="px-4 py-2 text-right">{formatNumber(currentAgr.total_emploi_femmes)}</td>
+                        <td className="px-4 py-2 text-right text-gold">{formatNumber(currentAgr.total_ide, 1)}</td>
+                        <td className="px-4 py-2"></td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Graphiques */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white rounded-lg shadow-sm border p-5">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">Emplois par entreprise</h3>
+                <BarChart
+                  data={entreprises.map(e => ({ name: e.nom_entreprise.substring(0, 15), emplois: e.emplois }))}
+                  bars={[{ key: 'emplois', color: '#2E8B57', name: 'Emplois' }]}
+                  xKey="name" height={250}
+                />
+              </div>
+              <div className="bg-white rounded-lg shadow-sm border p-5">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">IDE par entreprise (M USD)</h3>
+                <BarChart
+                  data={entreprises.map(e => ({ name: e.nom_entreprise.substring(0, 15), ide: Number(e.ide_recus) }))}
+                  bars={[{ key: 'ide', color: '#D4A829', name: 'IDE (M$)' }]}
+                  xKey="name" height={250}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -60,7 +60,7 @@ export default function HomePage() {
           <source src="/images/videobg2.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-navy/30" />
-        <div className="relative z-10 flex flex-col items-center px-4 py-28 text-center md:py-40">
+        <div className="relative z-10 flex flex-col items-center px-4 py-16 text-center md:py-24">
           <div className="overflow-hidden w-full max-w-4xl">
             <div className="flex animate-scroll-text gap-16 whitespace-nowrap">
               <span className="text-xl md:text-3xl italic font-light animate-shimmer">Mesurer aujourd'hui, orienter demain</span>
@@ -81,64 +81,64 @@ export default function HomePage() {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 lg:px-8">
         <div className="flex flex-col gap-8">
 
-          {/* ====== INDICATEURS PHARES ====== */}
+          {/* ====== INDICATEURS PHARES — Source: INS Guinée (stat-guinee.org) ====== */}
 
-          {/* Rang 1 : KPI Cards principaux — PIB, Industrie, Commerce, Inflation */}
+          {/* Rang 1 : Population + Indicateurs macro INS */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <KPICard
-              title="PIB Guinee"
-              value={teGDP ? `${fmtVal(teGDP)} Mrd` : wbGDP ? `${formatNumber(wbGDP.valeur/1e9,1)} Mrd` : '—'}
-              status={`${teGDP ? 'Trading Economics' : 'World Bank'} ${(teGDP || wbGDP)?.annee || ''}`}
+              title="Population Guinéenne"
+              value="17 521 167"
+              status="RGPH-4, 2025 — stat-guinee.org"
               trend="up"
               color="#0A1F44"
               barColors={['#2E8B57', '#D4A829', '#C41E3A', '#0A1F44']}
             />
             <KPICard
-              title="Secteur Industrie"
-              value={wbIndustrie ? `${fmtVal(wbIndustrie)}%` : '—'}
-              status={`World Bank ${wbIndustrie?.annee || ''} — % du PIB`}
-              trend="stable"
-              color="#2E8B57"
-              barColors={['#2E8B57', '#0A1F44', '#D4A829', '#C41E3A']}
-            />
-            <KPICard
-              title="Secteur Commerce"
-              value={te('TRADE_BALANCE') ? `${formatNumber(te('TRADE_BALANCE').valeur)} M$` : '—'}
-              status={`Trading Economics ${te('TRADE_BALANCE')?.annee || ''} — Balance`}
-              trend="up"
+              title="Taux d'inflation"
+              value="4,4%"
+              status="Janvier 2026 — INS Guinée"
+              trend="down"
               color="#C41E3A"
               barColors={['#C41E3A', '#D4A829', '#0A1F44', '#2E8B57']}
             />
             <KPICard
-              title="Inflation"
-              value={te('INFLATION') ? `${fmtVal(te('INFLATION'))}%` : wbInflation ? `${fmtVal(wbInflation)}%` : '—'}
-              status={`${te('INFLATION') ? 'Trading Economics' : 'World Bank'} ${(te('INFLATION') || wbInflation)?.annee || ''}`}
-              trend={Number((te('INFLATION') || wbInflation)?.valeur || 0) > 8 ? 'up' : 'down'}
+              title="Exportations"
+              value="12 724,9 Mrd"
+              status="Janvier 2026 — GNF — INS Guinée"
+              trend="up"
+              color="#2E8B57"
+              barColors={['#2E8B57', '#0A1F44', '#D4A829', '#C41E3A']}
+            />
+            <KPICard
+              title="Importations"
+              value="10 724,7 Mrd"
+              status="Janvier 2026 — GNF — INS Guinée"
+              trend="stable"
               color="#D4A829"
               barColors={['#D4A829', '#C41E3A', '#2E8B57', '#0A1F44']}
             />
           </div>
 
-          {/* Rang 2 : Indicateurs secondaires — 2 rangées de 4 */}
+          {/* Rang 2 : Indicateurs détaillés INS + World Bank */}
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {[
-              { icon: TrendingUp, label: 'Croissance PIB', d: te('GDP_GROWTH') || wbGrowth, fmt: (v) => `${fmtVal(v)}%`, color: 'text-cgreen', src: te('GDP_GROWTH') ? 'Trading Eco.' : 'World Bank' },
-              { icon: Factory, label: 'Manufacturier (% PIB)', d: wbManufact, fmt: (v) => `${fmtVal(v)}%`, color: 'text-navy', src: 'World Bank' },
-              { icon: Users, label: 'Emploi industriel', d: wbEmploi, fmt: (v) => `${fmtVal(v)}%`, color: 'text-gold', src: 'World Bank' },
-              { icon: Globe, label: 'Population', d: wbPopulation, fmt: (v) => `${formatNumber(v.valeur/1e6,1)}M`, color: 'text-cred', src: 'World Bank' },
-              { icon: Store, label: 'Exportations', d: te('EXPORTS') || wbExports, fmt: (v) => te('EXPORTS') ? `${formatNumber(v.valeur)} M$` : `${fmtVal(v)}% PIB`, color: 'text-cgreen', src: te('EXPORTS') ? 'Trading Eco.' : 'World Bank' },
-              { icon: Store, label: 'Importations', d: te('IMPORTS') || wb('NE.IMP.GNFS.ZS'), fmt: (v) => te('IMPORTS') ? `${formatNumber(v.valeur)} M$` : `${fmtVal(v)}% PIB`, color: 'text-cred', src: te('IMPORTS') ? 'Trading Eco.' : 'World Bank' },
-              { icon: DollarSign, label: 'Invest. directs (IDE)', d: wb('BX.KLT.DINV.CD.WD'), fmt: (v) => `${formatNumber(v.valeur/1e6)} M$`, color: 'text-navy', src: 'World Bank' },
-              { icon: DollarSign, label: 'Dette publique', d: te('PUBLIC_DEBT'), fmt: (v) => `${fmtVal(v)}% PIB`, color: 'text-gold', src: 'Trading Eco.' },
-            ].map(({ icon: Icon, d, label, fmt, color, src }) => (
+              { icon: Users, label: 'Population totale', value: '17 521 167', detail: 'Dont 51,8% femmes', color: 'text-navy', src: 'RGPH-4 2025' },
+              { icon: Users, label: 'Femmes', value: '9 068 256', detail: '51,8% de la population', color: 'text-cred', src: 'RGPH-4 2025' },
+              { icon: TrendingUp, label: 'Variation Indice des prix', value: '0,6%', detail: 'Janv. 2026 / mois précédent', color: 'text-gold', src: 'INS Guinée' },
+              { icon: DollarSign, label: 'PIB (provisoire 2024)', value: '217 089,3 Mrd GNF', detail: 'PIB par tête: 22,2 M GNF', color: 'text-navy', src: 'INS Guinée' },
+              { icon: TrendingUp, label: 'Croissance PIB', value: '5,6%', detail: 'T3 2025: 6,6%', color: 'text-cgreen', src: 'INS Guinée 2024' },
+              { icon: DollarSign, label: 'Dette extérieure', value: '4 718,8 M USD', detail: 'T4 2024', color: 'text-cred', src: 'INS Guinée' },
+              { icon: DollarSign, label: 'Masse monétaire', value: '75 265,79 Mrd GNF', detail: 'Juin 2025', color: 'text-gold', src: 'INS Guinée' },
+              { icon: Globe, label: 'Densité population', value: '71 hab/km²', detail: 'Urbain 38,7% | Rural 61,3%', color: 'text-navy', src: 'RGPH-4 2025' },
+            ].map(({ icon: Icon, label, value, detail, color, src }) => (
               <div key={label} className="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm border border-gray-100">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gray-50">
                   <Icon className={`h-5 w-5 ${color}`} />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] text-gray-400 truncate">{label}</p>
-                  <p className="text-sm font-bold text-gray-800">{d ? fmt(d) : '—'}</p>
-                  <p className="text-[9px] text-gray-400">{src} {d?.annee || ''}</p>
+                  <p className="text-sm font-bold text-gray-800">{value}</p>
+                  <p className="text-[9px] text-gray-400">{detail} — {src}</p>
                 </div>
               </div>
             ))}
@@ -210,7 +210,7 @@ export default function HomePage() {
               <h3 className="mb-1 text-sm font-semibold text-gray-800">Contraintes des entreprises</h3>
               <p className="mb-3 text-[10px] text-gray-400">Source: Enquêtes ONCP</p>
               {data?.contraintes?.length > 0
-                ? <BarChart data={data.contraintes.map(c => ({ name: c.nom, score: Number(c.score) }))} bars={[{ key: 'score', color: '#C41E3A', name: 'Score (0-5)' }]} xKey="name" height={250} />
+                ? <BarChart data={data.contraintes.map(c => ({ name: c.nom, score: Number(c.score) }))} bars={[{ key: 'score', color: '#C41E3A', name: 'Score (0-5)' }]} xKey="name" height={250} colorByValue />
                 : <p className="text-gray-400 text-center py-12">Données d'enquête non disponibles</p>}
             </div>
             <div className="rounded-lg bg-white p-5 shadow-md">

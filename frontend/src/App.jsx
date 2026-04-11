@@ -29,6 +29,7 @@ import PublicationsAdminPage from './pages/admin/PublicationsAdminPage';
 import ActualitesAdminPage from './pages/admin/ActualitesAdminPage';
 import ExportPage from './pages/admin/ExportPage';
 import SourcesPage from './pages/admin/SourcesPage';
+import EntreprisesPage from './pages/admin/EntreprisesPage';
 
 // Error Pages
 import NotFoundPage from './pages/errors/NotFoundPage';
@@ -82,6 +83,7 @@ export default function App() {
         <Route path="indicateurs" element={<ProtectedRoute requiredRole="editeur"><IndicateursPage /></ProtectedRoute>} />
         <Route path="valeurs" element={<ProtectedRoute requiredRole="editeur"><ValeursPage /></ProtectedRoute>} />
         <Route path="enquetes" element={<ProtectedRoute requiredRole="editeur"><EnquetesAdminPage /></ProtectedRoute>} />
+        <Route path="entreprises" element={<ProtectedRoute requiredRole="editeur"><EntreprisesPage /></ProtectedRoute>} />
         <Route path="publications" element={<ProtectedRoute requiredRole="editeur"><PublicationsAdminPage /></ProtectedRoute>} />
         <Route path="actualites" element={<ProtectedRoute requiredRole="editeur"><ActualitesAdminPage /></ProtectedRoute>} />
         <Route path="export" element={<ExportPage />} />
