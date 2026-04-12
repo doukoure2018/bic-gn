@@ -130,7 +130,7 @@ export default function BarometreIndustriePage() {
                   <div className="mt-2 space-y-1">
                     <div className="flex items-center gap-2">
                       <Factory size={14} className="text-cgreen" />
-                      <span className="text-xs text-gray-600">{agr.nb_entreprises} entreprises</span>
+                      <span className="text-xs text-gray-600 truncate">Prod: {agr.total_production ? `${formatNumber(agr.total_production)} ${agr.unite_production || ''}` : '—'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Users size={14} className="text-navy" />
@@ -138,7 +138,7 @@ export default function BarometreIndustriePage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <DollarSign size={14} className="text-gold" />
-                      <span className="text-xs text-gray-600">{formatNumber(agr.total_ide, 1)} M USD</span>
+                      <span className="text-xs text-gray-600">{formatNumber(agr.total_ide, 1)} M USD IDE</span>
                     </div>
                   </div>
                 </div>

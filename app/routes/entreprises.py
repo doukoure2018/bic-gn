@@ -46,7 +46,9 @@ async def agregation_public(secteur_code: str | None = None, conn=Depends(get_db
                COUNT(*) as nb_entreprises,
                SUM(emplois) as total_emplois,
                SUM(nbre_emploi_femmes) as total_emploi_femmes,
-               SUM(ide_recus) as total_ide
+               SUM(ide_recus) as total_ide,
+               SUM(CAST(REPLACE(REPLACE(prod_realisee, ' ', ''), ',', '') AS BIGINT)) as total_production,
+               MIN(unite_production) as unite_production
         FROM entreprises_industrielles
         WHERE statut = 'publie'
     """
