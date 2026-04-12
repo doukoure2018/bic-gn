@@ -224,8 +224,8 @@ export default function BarometreIndustriePage() {
                   <p className="text-2xl font-bold text-cred">{formatNumber(currentAgr.total_ide, 1)} M$</p>
                 </div>
                 <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-                  <p className="text-[10px] text-gray-500 uppercase">{SECTEUR_LABELS[activeTab]}</p>
-                  <p className="text-2xl font-bold text-navy">{currentAgr.nb_entreprises} entreprises</p>
+                  <p className="text-[10px] text-gray-500 uppercase">Production réalisée</p>
+                  <p className="text-2xl font-bold text-navy">{currentAgr.total_production ? formatNumber(currentAgr.total_production) : '—'} <span className="text-sm font-normal">{currentAgr.unite_production || ''}</span></p>
                 </div>
               </div>
             )}
