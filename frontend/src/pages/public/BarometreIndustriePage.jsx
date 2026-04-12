@@ -212,10 +212,6 @@ export default function BarometreIndustriePage() {
             {currentAgr && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
-                  <p className="text-[10px] text-gray-500 uppercase">Entreprises</p>
-                  <p className="text-2xl font-bold text-navy">{currentAgr.nb_entreprises}</p>
-                </div>
-                <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
                   <p className="text-[10px] text-gray-500 uppercase">Total emplois</p>
                   <p className="text-2xl font-bold text-cgreen">{formatNumber(currentAgr.total_emplois)}</p>
                 </div>
@@ -227,60 +223,12 @@ export default function BarometreIndustriePage() {
                   <p className="text-[10px] text-gray-500 uppercase">IDE reçus</p>
                   <p className="text-2xl font-bold text-cred">{formatNumber(currentAgr.total_ide, 1)} M$</p>
                 </div>
+                <div className="bg-white rounded-lg shadow-sm border p-4 text-center">
+                  <p className="text-[10px] text-gray-500 uppercase">{SECTEUR_LABELS[activeTab]}</p>
+                  <p className="text-2xl font-bold text-navy">{currentAgr.nb_entreprises} entreprises</p>
+                </div>
               </div>
             )}
-
-            {/* Tableau entreprises */}
-            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-              <div className="bg-cgreen/10 px-6 py-3 border-b flex items-center justify-between">
-                <h3 className="font-semibold text-cgreen text-sm">{SECTEUR_LABELS[activeTab]}</h3>
-                <Badge color="green">{entreprises.length} entreprises</Badge>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead><tr className="bg-gray-50 border-b">
-                    <th className="px-4 py-2 text-left font-semibold text-gray-600">Entreprise</th>
-                    <th className="px-4 py-2 text-left font-semibold text-gray-600">Région</th>
-                    <th className="px-4 py-2 text-right font-semibold text-gray-600">Prod. installée</th>
-                    <th className="px-4 py-2 text-right font-semibold text-gray-600">Prod. réalisée</th>
-                    <th className="px-4 py-2 text-right font-semibold text-gray-600">Emplois</th>
-                    <th className="px-4 py-2 text-right font-semibold text-gray-600">% Femmes</th>
-                    <th className="px-4 py-2 text-right font-semibold text-gray-600">IDE (M$)</th>
-                    <th className="px-4 py-2 text-left font-semibold text-gray-600">Contraintes</th>
-                  </tr></thead>
-                  <tbody>
-                    {entreprises.map((e) => (
-                      <tr key={e.id} className="border-b hover:bg-green-50/30">
-                        <td className="px-4 py-2 font-medium">{e.nom_entreprise}</td>
-                        <td className="px-4 py-2 text-gray-500">{e.region}</td>
-                        <td className="px-4 py-2 text-right">{e.prod_installee} {e.unite_production}/y</td>
-                        <td className="px-4 py-2 text-right font-semibold text-cgreen">{e.prod_realisee} {e.unite_production}</td>
-                        <td className="px-4 py-2 text-right">{formatNumber(e.emplois)}</td>
-                        <td className="px-4 py-2 text-right">{e.pct_emploi_femmes}%</td>
-                        <td className="px-4 py-2 text-right font-semibold text-gold">{e.ide_recus}</td>
-                        <td className="px-4 py-2">
-                          <span className="inline-flex items-center gap-1 text-cred text-[10px]">
-                            <AlertTriangle size={10} /> {e.contraintes}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                    {currentAgr && (
-                      <tr className="bg-navy/5 font-bold border-t-2">
-                        <td className="px-4 py-2">TOTAL</td>
-                        <td className="px-4 py-2"></td>
-                        <td className="px-4 py-2"></td>
-                        <td className="px-4 py-2"></td>
-                        <td className="px-4 py-2 text-right">{formatNumber(currentAgr.total_emplois)}</td>
-                        <td className="px-4 py-2 text-right">{formatNumber(currentAgr.total_emploi_femmes)}</td>
-                        <td className="px-4 py-2 text-right text-gold">{formatNumber(currentAgr.total_ide, 1)}</td>
-                        <td className="px-4 py-2"></td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
 
             {/* Graphiques */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
