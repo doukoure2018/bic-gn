@@ -113,7 +113,7 @@ export default function PublicLayout() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 120);
+    const handleScroll = () => setScrolled(window.scrollY > 150);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -123,9 +123,9 @@ export default function PublicLayout() {
       {/* Navbar - 2 lignes */}
       <header className="sticky top-0 z-50 shadow-lg">
 
-        {/* Ligne 1 : Logos (visible quand pas scrollé) */}
+        {/* Ligne 1 : Logos (caché quand scrollé) */}
         {!scrolled && (
-          <div className="bg-white border-b transition-all duration-300">
+          <div className="bg-white border-b">
             <div className="mx-auto max-w-7xl px-4 lg:px-8 flex items-center justify-between" style={{ padding: '0 2rem' }}>
               <Link to="/" className="flex flex-col items-center no-underline shrink-0">
                 {location.pathname === '/' ? (

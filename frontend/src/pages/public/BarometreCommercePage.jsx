@@ -58,28 +58,23 @@ export default function BarometreCommercePage() {
 
   return (
     <div className="flex flex-col bg-gray-50">
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-900 to-cred" />
-        <div className="relative z-10 flex flex-col items-center px-4 py-14 text-center">
-          <ShoppingCart size={48} className="text-cream mb-4" />
-          <h1 className="font-mono text-2xl font-extrabold uppercase tracking-widest text-cream md:text-4xl">
-            Baromètre Commerce
-          </h1>
-          <div className="mt-3 inline-block rounded bg-gold px-6 py-1">
-            <span className="text-sm font-bold uppercase tracking-[0.3em] text-navy">Guinée</span>
+      {/* Header compact */}
+      <div className="bg-gradient-to-r from-red-900 to-cred text-cream px-4 py-3">
+        <div className="mx-auto max-w-7xl flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <ShoppingCart size={24} />
+            <h1 className="text-lg font-bold">Guinée : Baromètre Commerce</h1>
           </div>
-          <p className="mt-4 text-cream/80">Indicateurs du secteur commercial guinéen</p>
-          <a href="/api/export/donnees/COM" download className="no-underline mt-6">
-            <button className="flex items-center gap-2 rounded-full bg-gold px-8 py-3 text-sm font-semibold text-navy hover:bg-gold/90 transition cursor-pointer border-0 shadow-lg">
-              <FileDown className="h-5 w-5" /> Telecharger le Rapport Commerce
+          <a href="/api/export/donnees/COM" download className="no-underline">
+            <button className="flex items-center gap-1 rounded-full bg-gold px-4 py-2 text-xs font-semibold text-navy hover:bg-gold/90 transition cursor-pointer border-0">
+              <FileDown className="h-4 w-4" /> Rapport Commerce
             </button>
           </a>
         </div>
-      </section>
+      </div>
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 lg:px-8">
-        <div className="flex flex-col gap-8">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8">
+        <div className="flex flex-col gap-6">
 
           {/* KPI Commerce */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -91,7 +86,7 @@ export default function BarometreCommercePage() {
             ].map(({ te: code, label, color, unit }) => {
               const te = getTe(code);
               return (
-                <div key={code} className="bg-white rounded-lg shadow-md p-4">
+                <div key={code} className="bg-white rounded-lg shadow-sm border p-4">
                   <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
                   <p className="text-2xl font-bold mt-1" style={{ color }}>
                     {te ? formatNumber(te.valeur, code === 'INFLATION' ? 1 : 0) : '—'}
@@ -110,7 +105,7 @@ export default function BarometreCommercePage() {
               { label: 'Essence / Gasoil', plafond: 12000, marche: 12000, unite: 'GNF/litre', color: '#2E8B57' },
               { label: 'Gaz butane (bouteille 12kg)', plafond: 120000, marche: 130000, unite: 'GNF/bout.', color: '#C41E3A' },
             ].map((item) => (
-              <div key={item.label} className="bg-white rounded-lg shadow-md p-4">
+              <div key={item.label} className="bg-white rounded-lg shadow-sm border p-4">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">{item.label}</p>
                 <p className="text-2xl font-bold mt-1" style={{ color: item.color }}>
                   {formatNumber(item.plafond)}
@@ -128,7 +123,7 @@ export default function BarometreCommercePage() {
           {/* ============================================ */}
           {/* PRIX SIMPRIX PAR REGION — Section principale */}
           {/* ============================================ */}
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
             <div className="bg-cred/10 px-6 py-4 border-b flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-semibold text-cred flex items-center gap-2">
@@ -208,7 +203,7 @@ export default function BarometreCommercePage() {
 
           {/* Commodités internationales */}
           {commodites.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
               <div className="px-6 py-4 border-b">
                 <h3 className="font-semibold text-gray-800">Cours des matières premières</h3>
                 <p className="text-[10px] text-gray-400 mt-1">Source: Trading Economics — Mise à jour dynamique</p>
@@ -249,43 +244,10 @@ export default function BarometreCommercePage() {
             </div>
           )}
 
-          {/* World Bank + Trading Economics */}
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="px-6 py-4 border-b">
-              <h3 className="font-semibold text-gray-800">Indicateurs macroéconomiques</h3>
-            </div>
-            <div className="divide-y">
-              {wbData.map((wb, i) => (
-                <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-red-50/30">
-                  <div>
-                    <p className="font-medium text-sm">{wb.indicateur_nom}</p>
-                    <p className="text-xs text-gray-400">World Bank — {wb.annee}</p>
-                  </div>
-                  <span className="text-lg font-bold text-cred">
-                    {formatNumber(wb.valeur, 1)}
-                    <span className="text-xs font-normal text-gray-500 ml-1">{wb.unite}</span>
-                  </span>
-                </div>
-              ))}
-              {teData.map((te, i) => (
-                <div key={`te-${i}`} className="px-6 py-4 flex items-center justify-between hover:bg-red-50/30">
-                  <div>
-                    <p className="font-medium text-sm">{te.indicateur_nom}</p>
-                    <p className="text-xs text-gray-400">Trading Economics — {te.annee}</p>
-                  </div>
-                  <span className="text-lg font-bold text-navy">
-                    {formatNumber(te.valeur, te.unite === '%' ? 1 : 0)}
-                    <span className="text-xs font-normal text-gray-500 ml-1">{te.unite}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Contraintes & Perspectives */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-lg shadow-md p-5">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4">Contraintes du secteur commercial</h3>
+            <div className="bg-white rounded-lg shadow-sm border p-5">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">Contraintes</h3>
               <BarChart
                 data={(contraintes.length > 0 ? contraintes : [
                   { nom: 'Douanes', score: 3.8 }, { nom: 'Transport', score: 3.5 },
@@ -298,8 +260,8 @@ export default function BarometreCommercePage() {
                 colorByValue
               />
             </div>
-            <div className="bg-white rounded-lg shadow-md p-5">
-              <h3 className="text-sm font-semibold text-gray-800 mb-4">Perspectives commerciales</h3>
+            <div className="bg-white rounded-lg shadow-sm border p-5">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3">Perspectives</h3>
               <PieChart
                 data={[
                   { name: 'Optimiste', value: Number(perspectives?.optimiste || 35) },
@@ -311,10 +273,8 @@ export default function BarometreCommercePage() {
             </div>
           </div>
 
-          <div className="rounded-lg bg-navy/5 border border-navy/10 p-4">
-            <p className="text-xs text-gray-500 text-center">
-              Sources : SIMPRIX (simprix.gov.gn) — Banque Mondiale — Trading Economics — BCRG — Enquêtes ONCP
-            </p>
+          <div className="rounded-lg bg-navy/5 border border-navy/10 p-3">
+            <p className="text-[10px] text-gray-500 text-center">Sources : SIMPRIX (simprix.gov.gn) — Banque Mondiale — Trading Economics — BCRG — Enquêtes ONCP</p>
           </div>
         </div>
       </main>
