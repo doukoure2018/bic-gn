@@ -120,31 +120,29 @@ export default function PublicLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      {/* Navbar - 2 lignes */}
+      {/* Logos (non-sticky, défile avec la page) */}
+      <div className="bg-white border-b">
+        <div className="mx-auto max-w-7xl px-4 lg:px-8 flex items-center justify-between" style={{ padding: '0 2rem' }}>
+          <Link to="/" className="flex flex-col items-center no-underline shrink-0">
+            {location.pathname === '/' ? (
+              <>
+                <img src="/images/armoirie.png" alt="Republique de Guinee" className="h-12 w-auto" />
+                <p className="text-[10px] text-navy font-bold leading-tight hidden sm:block">Republique de Guinee</p>
+                <p className="text-[9px] text-navy font-bold leading-tight hidden sm:block">Ministere de l'Industrie et du Commerce</p>
+              </>
+            ) : (
+              <img src="/images/logo-barometre.png" alt="Barometre Industrie & Commerce" style={{ height: '4.5rem' }} className="w-auto" />
+            )}
+          </Link>
+          <img src="/images/simandou2040.png" alt="Programme Simandou 2040" style={{ height: '7rem' }} className="w-auto hidden md:block" />
+          <img src="/images/logo-oncp.png" alt="ONCP" style={{ height: '4.5rem' }} className="w-auto hidden sm:block" />
+        </div>
+      </div>
+
+      {/* Menu (sticky) */}
       <header className="sticky top-0 z-50 shadow-lg">
 
-        {/* Ligne 1 : Logos (caché quand scrollé) */}
-        {!scrolled && (
-          <div className="bg-white border-b">
-            <div className="mx-auto max-w-7xl px-4 lg:px-8 flex items-center justify-between" style={{ padding: '0 2rem' }}>
-              <Link to="/" className="flex flex-col items-center no-underline shrink-0">
-                {location.pathname === '/' ? (
-                  <>
-                    <img src="/images/armoirie.png" alt="Republique de Guinee" className="h-12 w-auto" />
-                    <p className="text-[10px] text-navy font-bold leading-tight hidden sm:block">Republique de Guinee</p>
-                    <p className="text-[9px] text-navy font-bold leading-tight hidden sm:block">Ministere de l'Industrie et du Commerce</p>
-                  </>
-                ) : (
-                  <img src="/images/logo-barometre.png" alt="Barometre Industrie & Commerce" style={{ height: '4.5rem' }} className="w-auto" />
-                )}
-              </Link>
-              <img src="/images/simandou2040.png" alt="Programme Simandou 2040" style={{ height: '7rem' }} className="w-auto hidden md:block" />
-              <img src="/images/logo-oncp.png" alt="ONCP" style={{ height: '4.5rem' }} className="w-auto hidden sm:block" />
-            </div>
-          </div>
-        )}
-
-        {/* Ligne 2 : Menu (avec logo baromètre quand scrollé) */}
+        {/* Menu avec logo baromètre quand scrollé */}
         <div className={`text-cream ${scrolled ? 'flex' : ''}`}>
           {/* Section logo fond blanc (visible quand scrollé) */}
           {scrolled && (
