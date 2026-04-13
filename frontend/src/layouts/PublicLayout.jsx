@@ -10,7 +10,6 @@ const navLinks = [
   { key: 'industrie', path: '/barometre/industrie', label: 'Industrie' },
   { key: 'commerce', path: '/barometre/commerce', label: 'Commerce' },
   { key: 'donnees', path: '/donnees', label: 'Données' },
-  { key: 'creer-entreprise', path: 'https://apip.gov.gn/comment-creer-mon-entreprise/', label: 'Créer mon Entreprise', external: true },
   { key: 'contact', path: '/contact', label: 'Contact' },
 ];
 
@@ -44,6 +43,11 @@ const footerLinks = {
   institution: [
     { label: 'A propos', path: '/a-propos' },
     { label: 'Contact', path: '/contact' },
+  ],
+  liens_utiles: [
+    { label: 'Créer mon Entreprise (APIP)', path: 'https://apip.gov.gn/comment-creer-mon-entreprise/', external: true },
+    { label: 'Ministère (mcipme.gov.gn)', path: 'https://www.mcipme.gov.gn', external: true },
+    { label: 'SIMPRIX (Prix denrées)', path: 'https://www.simprix.gov.gn', external: true },
   ],
 };
 
@@ -251,6 +255,12 @@ export default function PublicLayout() {
               <ul className="space-y-2 list-none p-0 m-0">
                 {footerLinks.institution.map((l) => (
                   <li key={l.path}><Link to={l.path} className="text-xs text-cream/60 hover:text-cream no-underline transition">{l.label}</Link></li>
+                ))}
+              </ul>
+              <h4 className="text-xs font-semibold text-gold uppercase tracking-wider mb-3 mt-4">Liens utiles</h4>
+              <ul className="space-y-2 list-none p-0 m-0">
+                {footerLinks.liens_utiles.map((l) => (
+                  <li key={l.path}><a href={l.path} target="_blank" rel="noopener noreferrer" className="text-xs text-cream/60 hover:text-cream no-underline transition">{l.label}</a></li>
                 ))}
               </ul>
             </div>

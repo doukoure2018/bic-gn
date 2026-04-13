@@ -1,53 +1,56 @@
 import { useState } from 'react';
 import { Target, Eye, Building2, Landmark, BarChart3, Settings, BookOpen, HelpCircle, ChevronDown, ChevronUp, Factory, ShoppingCart, Users, TrendingUp, FileText, Shield } from 'lucide-react';
 
-const sections = [
-  { id: 'presentation', icon: BarChart3, title: '7.1.2.1 — Presentation du Barometre' },
-  { id: 'mission', icon: Target, title: '7.1.2.2 — Mission et Vision' },
-  { id: 'ministere', icon: Building2, title: '7.1.2.3 — Role du Ministere' },
-  { id: 'oncp', icon: Eye, title: '7.1.2.4 — Role de l\'ONCP' },
-  { id: 'objectifs', icon: Target, title: '7.1.2.5 — Objectifs du dispositif' },
-  { id: 'gouvernance', icon: Settings, title: '7.1.2.6 — Gouvernance du systeme' },
-  { id: 'methodologie', icon: BookOpen, title: '7.1.2.7 — Methodologie generale' },
-  { id: 'glossaire', icon: HelpCircle, title: '7.1.2.8 — Glossaire des concepts' },
+const TABS = [
+  { id: 'presentation', icon: BarChart3, label: 'Présentation' },
+  { id: 'mission', icon: Target, label: 'Mission & Vision' },
+  { id: 'ministere', icon: Building2, label: 'Ministère' },
+  { id: 'oncp', icon: Eye, label: 'ONCP' },
+  { id: 'objectifs', icon: Target, label: 'Objectifs' },
+  { id: 'gouvernance', icon: Settings, label: 'Gouvernance' },
+  { id: 'methodologie', icon: BookOpen, label: 'Méthodologie' },
+  { id: 'glossaire', icon: HelpCircle, label: 'Glossaire' },
 ];
 
 export default function AboutPage() {
-  const [openSection, setOpenSection] = useState('presentation');
-
-  const toggle = (id) => setOpenSection(openSection === id ? null : id);
+  const [activeTab, setActiveTab] = useState('presentation');
 
   return (
-    <div>
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-navy to-navy/80" />
-        <div className="relative z-10 flex flex-col items-center px-4 py-14 text-center">
-          <img src="/images/logo-bicgn.jpeg" alt="BIC-GN ONCP" className="h-24 w-auto rounded-lg shadow-xl mb-4" />
-          <h1 className="text-2xl md:text-3xl font-bold text-cream">A Propos du Barometre</h1>
-          <p className="mt-2 text-cream/70 text-sm max-w-2xl">
-            Plateforme institutionnelle et decisionnelle pour le suivi de la performance economique de l'industrie et du commerce en Republique de Guinee
-          </p>
+    <div className="flex flex-col bg-gray-50">
+      {/* Header compact */}
+      <div className="bg-gradient-to-r from-navy to-navy/80 text-cream px-4 py-3">
+        <div className="mx-auto max-w-7xl flex items-center gap-3">
+          <BarChart3 size={24} />
+          <h1 className="text-lg font-bold">Guinée : A Propos du Baromètre</h1>
         </div>
-      </section>
+      </div>
 
-      <main className="mx-auto max-w-5xl px-4 py-8 lg:px-8">
-        {/* Navigation rapide */}
-        <nav className="flex flex-wrap gap-2 mb-8 justify-center">
-          {sections.map((s) => (
-            <button key={s.id} onClick={() => { toggle(s.id); document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth' }); }}
-              className={`text-xs px-3 py-1.5 rounded-full border transition cursor-pointer ${
-                openSection === s.id ? 'bg-navy text-cream border-navy' : 'bg-white text-gray-600 border-gray-200 hover:border-navy'
+      {/* Onglets */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 flex items-center gap-0 overflow-x-auto">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-3 text-xs font-semibold whitespace-nowrap border-b-2 transition cursor-pointer bg-transparent ${
+                activeTab === tab.id
+                  ? 'border-navy text-navy'
+                  : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
               }`}
-            >{s.title.split(' — ')[1]}</button>
+            >
+              {tab.label}
+            </button>
           ))}
-        </nav>
+        </div>
+      </div>
 
-        <div className="space-y-4">
+      <main className="mx-auto max-w-5xl w-full px-4 py-6 lg:px-8">
 
-          {/* 7.1.2.1 — Presentation */}
-          <SectionBlock id="presentation" icon={BarChart3} title="Presentation du Barometre Industrie & Commerce"
-            isOpen={openSection === 'presentation'} onToggle={() => toggle('presentation')}>
+        <div className="space-y-6">
+
+          {/* Presentation */}
+          {activeTab === 'presentation' && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <p>Le <strong>Barometre Industrie & Commerce de Guinee (BIC-GN)</strong> est une plateforme web institutionnelle et decisionnelle mise en place par le Ministere de l'Industrie et du Commerce, administree par l'Observatoire National de la Competitivite-Pays (ONCP).</p>
             <p className="mt-3">Elle est destinee a centraliser, structurer, publier et valoriser les donnees, indicateurs, analyses et publications relatifs aux secteurs de l'industrie et du commerce en Republique de Guinee.</p>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -63,11 +66,12 @@ export default function AboutPage() {
                 </div>
               ))}
             </div>
-          </SectionBlock>
+          </div>
+          )}
 
-          {/* 7.1.2.2 — Mission et Vision */}
-          <SectionBlock id="mission" icon={Target} title="Mission et Vision"
-            isOpen={openSection === 'mission'} onToggle={() => toggle('mission')}>
+          {/* Mission et Vision */}
+          {activeTab === 'mission' && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-cgreen/5 rounded-lg p-5 border border-cgreen/20">
                 <h4 className="font-semibold text-cgreen text-sm mb-2">Mission</h4>
@@ -78,11 +82,12 @@ export default function AboutPage() {
                 <p className="text-xs text-gray-700 leading-relaxed">Devenir la plateforme de reference pour la diffusion structuree, lisible et securisee d'indicateurs, d'analyses et de publications sur l'industrie et le commerce en Guinee, au service des decideurs, investisseurs et du grand public.</p>
               </div>
             </div>
-          </SectionBlock>
+          </div>
+          )}
 
           {/* 7.1.2.3 — Role du Ministere */}
-          <SectionBlock id="ministere" icon={Building2} title="Role du Ministere de l'Industrie et du Commerce"
-            isOpen={openSection === 'ministere'} onToggle={() => toggle('ministere')}>
+          {activeTab === 'ministere' && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-start gap-4">
               <img src="/images/armoirie.jpeg" alt="Armoiries" className="h-20 w-auto rounded shrink-0" />
               <div>
@@ -97,11 +102,12 @@ export default function AboutPage() {
                 <p className="mt-3 text-[10px] text-gray-400">Adresse : Boulevard du Commerce, Quartier Almamyah, Conakry — www.mcipme.gov.gn</p>
               </div>
             </div>
-          </SectionBlock>
+          </div>
+          )}
 
           {/* 7.1.2.4 — Role de l'ONCP */}
-          <SectionBlock id="oncp" icon={Eye} title="Role de l'ONCP — Observatoire National de la Competitivite Pays"
-            isOpen={openSection === 'oncp'} onToggle={() => toggle('oncp')}>
+          {activeTab === 'oncp' && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="flex items-start gap-4">
               <img src="/images/logo-bicgn.jpeg" alt="ONCP" className="h-20 w-auto rounded shrink-0" />
               <div>
@@ -118,11 +124,12 @@ export default function AboutPage() {
                 <p className="text-[10px] text-gray-400">Directeur General : KANE Moussa</p>
               </div>
             </div>
-          </SectionBlock>
+          </div>
+          )}
 
           {/* 7.1.2.5 — Objectifs */}
-          <SectionBlock id="objectifs" icon={Target} title="Objectifs du dispositif"
-            isOpen={openSection === 'objectifs'} onToggle={() => toggle('objectifs')}>
+          {activeTab === 'objectifs' && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[
                 { icon: BarChart3, text: 'Publier des indicateurs sectoriels regulierement mis a jour' },
@@ -140,11 +147,12 @@ export default function AboutPage() {
                 </div>
               ))}
             </div>
-          </SectionBlock>
+          </div>
+          )}
 
           {/* 7.1.2.6 — Gouvernance */}
-          <SectionBlock id="gouvernance" icon={Settings} title="Gouvernance du systeme"
-            isOpen={openSection === 'gouvernance'} onToggle={() => toggle('gouvernance')}>
+          {activeTab === 'gouvernance' && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <p className="text-xs text-gray-700 mb-4">La gouvernance du BIC-GN repose sur un workflow de validation en 5 etapes et des roles differencies :</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -186,11 +194,12 @@ export default function AboutPage() {
                 ))}
               </div>
             </div>
-          </SectionBlock>
+          </div>
+          )}
 
           {/* 7.1.2.7 — Methodologie */}
-          <SectionBlock id="methodologie" icon={BookOpen} title="Methodologie generale"
-            isOpen={openSection === 'methodologie'} onToggle={() => toggle('methodologie')}>
+          {activeTab === 'methodologie' && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="space-y-4">
               <div>
                 <h4 className="text-xs font-semibold text-navy mb-2">Indice synthetique IBIC</h4>
@@ -265,11 +274,12 @@ export default function AboutPage() {
                 </div>
               </div>
             </div>
-          </SectionBlock>
+          </div>
+          )}
 
           {/* 7.1.2.8 — Glossaire */}
-          <SectionBlock id="glossaire" icon={HelpCircle} title="Glossaire des concepts"
-            isOpen={openSection === 'glossaire'} onToggle={() => toggle('glossaire')}>
+          {activeTab === 'glossaire' && (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
             <div className="space-y-2">
               {[
                 { term: 'IBIC', def: 'Indice du Barometre Industrie et Commerce — indicateur synthetique mesurant la sante economique des secteurs industriel et commercial (score 0-100).' },
@@ -294,7 +304,8 @@ export default function AboutPage() {
                 </div>
               ))}
             </div>
-          </SectionBlock>
+          </div>
+          )}
 
         </div>
       </main>
@@ -302,25 +313,3 @@ export default function AboutPage() {
   );
 }
 
-function SectionBlock({ id, icon: Icon, title, isOpen, onToggle, children }) {
-  return (
-    <div id={id} className="bg-white rounded-lg shadow-sm border overflow-hidden">
-      <button onClick={onToggle}
-        className="w-full flex items-center justify-between px-6 py-4 cursor-pointer bg-transparent border-0 hover:bg-gray-50 transition"
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy/10">
-            <Icon className="h-4 w-4 text-navy" />
-          </div>
-          <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
-        </div>
-        {isOpen ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
-      </button>
-      {isOpen && (
-        <div className="px-6 pb-6 text-sm text-gray-700">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
